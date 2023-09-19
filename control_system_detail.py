@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import math
 
+
 class Control:
     def __init__(self):
         self.e = 0
@@ -17,10 +18,21 @@ class Control:
     def get_dot_e(self):
         return self.dot_e
 
+def get_x(angle):
+    # mm
+    L0 = 10
+    L1 = 10
+    L2 = 10
+    #
+
+    L = np.sqrt(L1**2 + L2**2 - 2*L1*L2*np.cos(angle*np.pi/180))
+    x = L0 - L
+    return x
+
 def control_system(desire_angle,actual_angle,learning_array,array_index,first_period, C):
 
-    # e = (actual_angle - desire_angle)/180*math.pi
-    e = (actual_angle - desire_angle)
+    ## e = (actual_angle - desire_angle)/180*math.pi
+    e = (get_x(actual_angle) - get_x(desire_angle))
     C.insert(e)
 
     ################## Control Value ##########################

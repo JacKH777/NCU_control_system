@@ -1,10 +1,10 @@
 import numpy as np
 
 # 設定sin波形的參數
-amplitude = 15000  # 振幅
-offset = 15000     # 位移，使得波形的最小值為0
+amplitude = 25  # 振幅
+offset = 50     # 位移，使得波形的最小值為0
 frequency = 1      # 頻率（週期數）
-num_points = 128    # 點的數量
+num_points = 256    # 點的數量
 
 # 產生0到2π之間的等間隔數值（64個點）
 x = np.linspace(0, 2 * np.pi, num_points)

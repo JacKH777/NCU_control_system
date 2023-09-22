@@ -20,31 +20,33 @@ class Control:
 
 def get_x(angle):
     # mm
-    L0 = 10
-    L1 = 10
-    L2 = 10
+    L0 = 300
+    L1 = 50
+    L2 = 250
     #
 
+    angle = 180 - angle
     L = np.sqrt(L1**2 + L2**2 - 2*L1*L2*np.cos(angle*np.pi/180))
     x = L0 - L
     return x
 
 def control_system(desire_angle,actual_angle,learning_array,array_index,first_period, C):
 
-    ## e = (actual_angle - desire_angle)/180*math.pi
+    #e = (actual_angle - desire_angle)/180*math.pi
+    #e = (get_x(actual_angle) - get_x(desire_angle))
     e = (get_x(actual_angle) - get_x(desire_angle))
     C.insert(e)
 
     ################## Control Value ##########################
     smc_lambda = 0.2
     k_l1 = 0.5
-    k_l2 = 0.1
+    k_l2 = 1
     beta_r = 10
     m_0 = 1
     f_2_bar = 1.5
     eta = 0.01
 
-    rho = 35 ## 1mm
+    rho = 100 ## 1mm
     ###########################################################
 
     s = smc_lambda * C.get_e() + C.get_dot_e()
@@ -65,9 +67,12 @@ def control_system(desire_angle,actual_angle,learning_array,array_index,first_pe
         learning_array[array_index] = w_r_head
     #########################################################
 
-    u = (m_0/f_2_bar)*(-k_l2 * np.sign(s) - np.tanh(e) - w_r_head - (eta*np.log(np.cosh(rho))*np.tanh(e))/((np.log(np.cosh(rho))-np.log(np.cosh(e)))**2))
+    u = (m_0/f_2_bar)*((-k_l2 * np.sign(s)) - np.tanh(e) - w_r_head - (eta*np.log(np.cosh(rho))*np.tanh(e))/((np.log(np.cosh(rho))-np.log(np.cosh(e)))**2))
     # u = (m_0/f_2_bar)*((-k_l2) * np.sign(s) - w_r_head)
     return u, learning_array, first_period, C
 
 
-
+if __name__ == '__main__':
+    e = (get_x(30) - get_x(100))
+    print(e)
+ 

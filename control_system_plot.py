@@ -15,7 +15,10 @@ from datetime import datetime
 from datetime import datetime
 from multiprocessing import Queue
 
-from control_system_detail import control_system,Control
+import pandas as pd
+from scipy.interpolate import interp1d
+
+from control_system_detail import control_system,Control,return_simulation_pma_angle
 
 
 
@@ -29,8 +32,6 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from scipy import signal
 
 import serial.tools.list_ports
-
-
 
 
 def styled_text(text=None, color="#999999"):
@@ -211,6 +212,9 @@ class DataReceiveThreads(Ui_MainWindow):
 ]   
         self.triangle_angle = [25,26,26,27,28,29,29,30,31,31,32,33,33,34,35,36,36,37,38,38,39,40,40,41,42,43,43,44,45,45,46,47,48,48,49,50,50,51,52,52,53,54,55,55,56,57,57,58,59,59,60,61,62,62,63,64,64,65,66,67,67,68,69,69,70,71,71,72,73,74,74,75,76,76,77,78,78,79,80,81,81,82,83,83,84,85,86,86,87,88,88,89,90,90,91,92,93,93,94,95,95,94,93,93,92,91,90,90,89,88,88,87,86,86,85,84,83,83,82,81,81,80,79,78,78,77,76,76,75,74,74,73,72,71,71,70,69,69,68,67,67,66,65,64,64,63,62,62,61,60,59,59,58,57,57,56,55,55,54,53,52,52,51,50,50,49,48,48,47,46,45,45,44,43,43,42,41,40,40,39,38,38,37,36,36,35,34,33,33,32,31,31,30,29,29,28,27,26,26,25]
 
+        excel_file = pd.ExcelFile('PMA_angle.xlsx')
+        df_pma_angle = excel_file.parse('Sheet1', usecols="B:C", header=None,nrows=200)
+
     def data_recv(self, queue_comport, queue_voltage, queue_gui_message,queue_receive_deg, queue_desire_deg, queue_control_value):
         while True:            
             if not queue_comport.empty():
@@ -233,6 +237,8 @@ class DataReceiveThreads(Ui_MainWindow):
         learning_array = [0] * 200
         first_period = True
         controller_u = 0
+        simulition = True
+        decimal_val = 0
         while True:     
             ##
             # val = self.Sine16bit[Idx]
@@ -252,23 +258,24 @@ class DataReceiveThreads(Ui_MainWindow):
             #val = val/65535*10
 
             ################## Decoder ###################
-            self.ser_2.write(b'\x54')
-            read_data = self.ser_2.read(2)
-            received_val = int.from_bytes(read_data, byteorder='little')
-    
-            # 将整数转换成二进制，并移除最高两位
-            binary_val = bin(received_val)[2:].zfill(16)  # 将整数转换为16位的二进制字符串
-            truncated_binary = binary_val[2:]  # 移除最高两位
-            decimal_val = int(truncated_binary, 2)
-            if first_count==0:
-                reset_count = decimal_val
-                first_count = 1
-            if decimal_val < reset_count:
-                decimal_val = ((decimal_val-reset_count+16384)/16383*360)+25
-            else:
-                decimal_val = ((decimal_val-reset_count)/16383*360)+25
-            if decimal_val > 350:
-                decimal_val = 25
+            if simulition == False:
+                self.ser_2.write(b'\x54')
+                read_data = self.ser_2.read(2)
+                received_val = int.from_bytes(read_data, byteorder='little')
+        
+                # 将整数转换成二进制，并移除最高两位
+                binary_val = bin(received_val)[2:].zfill(16)  # 将整数转换为16位的二进制字符串
+                truncated_binary = binary_val[2:]  # 移除最高两位
+                decimal_val = int(truncated_binary, 2)
+                if first_count==0:
+                    reset_count = decimal_val
+                    first_count = 1
+                if decimal_val < reset_count:
+                    decimal_val = ((decimal_val-reset_count+16384)/16383*360)+25
+                else:
+                    decimal_val = ((decimal_val-reset_count)/16383*360)+25
+                if decimal_val > 350:
+                    decimal_val = 25
             ################################################
 
             queue_receive_deg.put(decimal_val)
@@ -276,6 +283,8 @@ class DataReceiveThreads(Ui_MainWindow):
             controller_u, learning_array, first_period, C = control_system(desire_angle,decimal_val,learning_array,Idx,first_period, C)
             # queue_voltage.put(controller_u)
             controller_u = controller_u/10*65535
+            if simulition == True:
+                decimal_val = return_simulation_pma_angle(self.df_pma_angle,controller_u)
             queue_voltage.put(controller_u)
             if controller_u>39321:
                 controller_u = 39321
@@ -283,7 +292,7 @@ class DataReceiveThreads(Ui_MainWindow):
                 controller_u = 0
             controller_u = int(controller_u)
             #controller_u = self.Sine16bit[Idx]
-            self.ser_1.write(controller_u.to_bytes(2, byteorder='big'))
+            #self.ser_1.write(controller_u.to_bytes(2, byteorder='big'))
             # queue_voltage.put(controller_u)
             time.sleep(1/10) #delay 0.01 sec
 

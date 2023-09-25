@@ -1,73 +1,13 @@
-import sys
-from PyQt5.QtWidgets import QMainWindow, QLabel, QVBoxLayout, QPushButton, QWidget, QApplication
-from PyQt5 import QtCore
-import serial
+import pandas as pd
+from scipy.interpolate import interp1d
 
-class MainWindow(QMainWindow):
-    def __init__(self):
-        super().__init__()
+excel_file = pd.ExcelFile('PMA_angle.xlsx')
+df_pma_angle = excel_file.parse('Sheet1', usecols="B:C", header=None,nrows=200)
 
-        self.init_ui()
+def return_simulation_pma_angle(df_pma_angle,voltage_65535):
+    #pma_angle = df_pma_angle[1].interpolate(method='linear', limit_direction='both', limit_area='inside')
+    interpolated_function = interp1d(df_pma_angle[1], df_pma_angle[2], kind='linear', fill_value='extrapolate')
+    pma_angle = interpolated_function(voltage_65535)
+    return pma_angle
 
-    def init_ui(self):
-        self.setWindowTitle('調整氣壓大小')
-        self.setGeometry(500, 500, 1500, 1000)
-
-        self.label = QLabel('電壓值(0~36000)', self)
-        self.label.setAlignment(QtCore.Qt.AlignCenter)
-
-        self.button_connect_uart = QPushButton('藍芽連線', self)
-        self.button_connect_uart.clicked.connect(self.connect_to_stm32)
-
-        self.button_increase = QPushButton('增加電壓', self)
-        self.button_increase.clicked.connect(self.increase_voltage)
-
-        self.button_decrease = QPushButton('減小電壓', self)
-        self.button_decrease.clicked.connect(self.decrease_voltage)
-
-        layout = QVBoxLayout()
-        layout.addWidget(self.label)
-        layout.addWidget(self.button_connect_uart)
-        layout.addWidget(self.button_increase)
-        layout.addWidget(self.button_decrease)
-
-        widget = QWidget()
-        widget.setLayout(layout)
-        self.setCentralWidget(widget)
-
-        self.current_voltage = 0
-        self.ser = None 
-    
-    def connect_to_stm32(self):
-        if self.ser is None:
-            try:
-                self.ser = serial.Serial('COM9', 460800)
-                self.button_connect_uart.setText('連線成功')
-            except serial.SerialException as e:
-                self.button_connect_uart.setText("連接失敗")
-        else :
-            self.ser.close()
-            self.ser = None 
-            self.button_connect_uart.setText('藍芽連線')
-
-    def increase_voltage(self):
-        self.current_voltage += 100
-        if self.current_voltage > 36000:
-            self.current_voltage = 36000
-        self.update_voltage()
-
-    def decrease_voltage(self):
-        self.current_voltage -= 100
-        if self.current_voltage < 0:
-            self.current_voltage = 0
-        self.update_voltage()
-
-    def update_voltage(self):
-        self.label.setText(f"電壓值：{self.current_voltage}V")
-        self.ser.write(self.current_voltage.to_bytes(2, byteorder='big'))
-
-if __name__ == "__main__":
-    app = QApplication(sys.argv)
-    window = MainWindow()
-    window.show()
-    sys.exit(app.exec_())
+print(return_simulation_pma_angle(df_pma_angle,12844))

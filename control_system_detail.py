@@ -1,7 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import math
-
+import pandas as pd
+from scipy.interpolate import interp1d
 
 class Control:
     def __init__(self):
@@ -71,6 +72,11 @@ def control_system(desire_angle,actual_angle,learning_array,array_index,first_pe
     # u = (m_0/f_2_bar)*((-k_l2) * np.sign(s) - w_r_head)
     return u, learning_array, first_period, C
 
+def return_simulation_pma_angle(df_pma_angle,voltage_65535):
+    #pma_angle = df_pma_angle[1].interpolate(method='linear', limit_direction='both', limit_area='inside')
+    interpolated_function = interp1d(df_pma_angle[1], df_pma_angle[2], kind='linear', fill_value='extrapolate')
+    pma_angle = interpolated_function(voltage_65535)
+    return pma_angle
 
 if __name__ == '__main__':
     e = (get_x(30) - get_x(100))

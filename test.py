@@ -10,4 +10,4 @@ def return_simulation_pma_angle(df_pma_angle,voltage_65535):
     pma_angle = interpolated_function(voltage_65535)
     return pma_angle
 
-print(return_simulation_pma_angle(df_pma_angle,12844))
+print(return_simulation_pma_angle(df_pma_angle,12500))

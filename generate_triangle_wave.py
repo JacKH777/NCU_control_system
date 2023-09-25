@@ -1,8 +1,8 @@
 import numpy as np
 
 # 設定三角波形的參數
-amplitude = 35000  # 振幅
-offset = 0     # 位移，使得波形的最小值為0
+amplitude = 35  # 振幅
+offset = 20     # 位移，使得波形的最小值為0
 frequency = 1      # 頻率（週期數）
 num_points = 200    # 點的數量
 

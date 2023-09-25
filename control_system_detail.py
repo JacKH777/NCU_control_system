@@ -1,7 +1,4 @@
 import numpy as np
-import matplotlib.pyplot as plt
-import math
-import pandas as pd
 from scipy.interpolate import interp1d
 
 class Control:
@@ -10,7 +7,7 @@ class Control:
         self.dot_e = 0
 
     def insert(self, e):
-        self.dot_e = e - self.e
+        self.dot_e = (e - self.e)/0.1
         self.e = e
 
     def get_e(self):
@@ -41,13 +38,13 @@ def control_system(desire_angle,actual_angle,learning_array,array_index,first_pe
     ################## Control Value ##########################
     smc_lambda = 0.2
     k_l1 = 0.5
-    k_l2 = 1
+    k_l2 = 0.01
     beta_r = 10
     m_0 = 1
     f_2_bar = 1.5
     eta = 0.01
 
-    rho = 100 ## 1mm
+    rho = 10 ## 1mm
     ###########################################################
 
     s = smc_lambda * C.get_e() + C.get_dot_e()
@@ -60,9 +57,10 @@ def control_system(desire_angle,actual_angle,learning_array,array_index,first_pe
         learning_array[array_index] = -beta_r
 
     if first_period==True:
-        w_r_head = k_l1*s*(array_index/150)
+        w_r_head = k_l1*s*(array_index/200)
         learning_array[array_index] = w_r_head
-        first_period = False
+        if array_index == 200:
+            first_period = False
     else:
         w_r_head = learning_array[array_index] + k_l1*s
         learning_array[array_index] = w_r_head
@@ -73,12 +71,11 @@ def control_system(desire_angle,actual_angle,learning_array,array_index,first_pe
     return u, learning_array, first_period, C
 
 def return_simulation_pma_angle(df_pma_angle,voltage_65535):
-    #pma_angle = df_pma_angle[1].interpolate(method='linear', limit_direction='both', limit_area='inside')
     interpolated_function = interp1d(df_pma_angle[1], df_pma_angle[2], kind='linear', fill_value='extrapolate')
     pma_angle = interpolated_function(voltage_65535)
-    return pma_angle
+    return pma_angle 
 
 if __name__ == '__main__':
-    e = (get_x(30) - get_x(100))
+    e = (get_x(20) - get_x(25))
     print(e)
  

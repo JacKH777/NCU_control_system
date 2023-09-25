@@ -293,7 +293,7 @@ class DataReceiveThreads(Ui_MainWindow):
             controller_u = int(controller_u)
             #controller_u = self.Sine16bit[Idx]
             #self.ser_1.write(controller_u.to_bytes(2, byteorder='big'))
-            # queue_voltage.put(controller_u)
+            queue_voltage.put(controller_u)
             time.sleep(1/10) #delay 0.01 sec
 
 

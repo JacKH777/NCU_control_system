@@ -216,6 +216,7 @@ class DataReceiveThreads(Ui_MainWindow):
         self.df_pma_angle = excel_file.parse('Sheet1', usecols="B:C", header=None,nrows=200)
 
     def data_recv(self, queue_comport, queue_voltage, queue_gui_message,queue_receive_deg, queue_desire_deg, queue_control_value):
+
         while True:            
             if not queue_comport.empty():
                 # Get last selected COM port name from queue
@@ -229,36 +230,40 @@ class DataReceiveThreads(Ui_MainWindow):
         self.ser_2 = serial.Serial('COM4', 115200)
 
         C = Control()
+
+        # 模擬模式=True
+        simulation = True
+
         Idx = 0
-        desire_angle = 0
         test = 0
-        first_count = 0
-        reset_count = 0
+
+        desire_angle = self.triangle_angle[0]
+        actual_angle = self.triangle_angle[0]
         learning_array = [0] * 200
         first_period = True
         controller_u = 0
-        simulition = True
-        decimal_val = 0
-        while True:     
-            ##
-            # val = self.Sine16bit[Idx]
-            ##
-            desire_angle = self.triangle_angle[Idx]
-            #
+        
+        first_count = 0
+        reset_count = 0
+
+        while True:
+
+            # 前 (test/10) 秒不作動
             if test < 100:
-                desire_angle = 20
-                Idx = 0
-                
+                Idx = 0    
             test = test + 1
-            #
-            Idx = Idx + 1
+            
+            # 循環
             if Idx == 200:
                 Idx = 0 
-            #self.ser_1.write(val.to_bytes(2, byteorder='big'))
-            #val = val/65535*10
+            Idx = Idx + 1
 
-            ################## Decoder ###################
-            if simulition == False:
+            ####################### 目標路徑 #######################
+            desire_angle = self.triangle_angle[Idx]
+            #######################################################
+
+            ########### Decoder(真實回饋，simulation=False) #########
+            if simulation == False:
                 self.ser_2.write(b'\x54')
                 read_data = self.ser_2.read(2)
                 received_val = int.from_bytes(read_data, byteorder='little')
@@ -266,42 +271,46 @@ class DataReceiveThreads(Ui_MainWindow):
                 # 将整数转换成二进制，并移除最高两位
                 binary_val = bin(received_val)[2:].zfill(16)  # 将整数转换为16位的二进制字符串
                 truncated_binary = binary_val[2:]  # 移除最高两位
-                decimal_val = int(truncated_binary, 2)
+                actual_angle = int(truncated_binary, 2)
+
+                # 校正
                 if first_count==0:
-                    reset_count = decimal_val
+                    reset_count = actual_angle
                     first_count = 1
-                if decimal_val < reset_count:
-                    decimal_val = ((decimal_val-reset_count+16384)/16383*360)+25
+                if actual_angle < reset_count:
+                    actual_angle = ((actual_angle-reset_count+16384)/16383*360)+25
                 else:
-                    decimal_val = ((decimal_val-reset_count)/16383*360)+25
-                if decimal_val > 350:
-                    decimal_val = 25
-            ################################################
+                    actual_angle = ((actual_angle-reset_count)/16383*360)+25
+                if actual_angle > 350:
+                    actual_angle = 25
+            ########################################################
+            
+            # 控制系統
+            controller_u, learning_array, first_period, C = control_system(desire_angle,actual_angle,learning_array,Idx,first_period, C)
 
-            queue_receive_deg.put(decimal_val)
+            # 儲存結果
+            queue_receive_deg.put(actual_angle)
             queue_desire_deg.put(desire_angle)
-            controller_u, learning_array, first_period, C = control_system(desire_angle,decimal_val,learning_array,Idx,first_period, C)
-            # queue_voltage.put(controller_u)
+            queue_voltage.put(controller_u)
 
-            # to voltage
+            # 轉成 16 bits 電壓值
             controller_u = controller_u/10*65535+12350
             controller_u = int(controller_u)
 
-            #queue_voltage.put(controller_u)
+            if simulation == False:
 
-            # ##################### For Safe #####################
-            # if controller_u>32767:
-            #     controller_u = 32767
-            # elif controller_u<0:
-            #     controller_u = 0
-            # ##################################################
+                if controller_u>32767:
+                    controller_u = 32767
+                elif controller_u<0:
+                    controller_u = 0
 
-            if simulition == True:
-                decimal_val = return_simulation_pma_angle(self.df_pma_angle,controller_u)
-            #controller_u = self.Sine16bit[Idx]
-            #self.ser_1.write(controller_u.to_bytes(2, byteorder='big'))
-            queue_voltage.put(controller_u)
-            time.sleep(1/10) #delay 0.01 sec
+                self.ser_1.write(controller_u.to_bytes(2, byteorder='big'))
+
+
+            if simulation == True:
+                actual_angle = return_simulation_pma_angle(self.df_pma_angle,controller_u)
+
+            time.sleep(1/10) #delay 0.1 sec
 
 
 

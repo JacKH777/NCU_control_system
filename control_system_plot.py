@@ -141,14 +141,19 @@ class MyMainWindow(QtWidgets. QMainWindow, Ui_MainWindow):
         xdata = np.arange(ydata.shape[0])
         self.canvas.lines[0].set_data(xdata, ydata)
 
+        y_data_1 = self.desire_deg_array     
+        x_data_1 = np.arange(y_data_1.shape[0])
+        self.canvas.lines[1].set_data(x_data_1, y_data_1)
+
         ydat = self.raw_total_deg     
         xdat = np.arange(ydat.shape[0])
         self.canvas.lines[2].set_data(xdat, ydat)
 
-        y_data_1 = self.desire_deg_array     
-        x_data_1 = np.arange(ydat.shape[0])
-        self.canvas.lines[1].set_data(x_data_1, y_data_1)
-        
+        self.canvas.lines[3].set_data(x_data_1, y_data_1)
+        self.canvas.lines[5].set_data(xdat, ydat)
+
+        self.canvas.lines[4].set_data(xdat, y_data_1-ydat)
+
         self.canvas.draw()
 
     def on_combobox_changed(self, index):
@@ -208,9 +213,9 @@ class DataReceiveThreads(Ui_MainWindow):
         self.ser_1 = None
         self.ser_2 = None
         self.Sine16bit = [
-        0,704,1407,2111,2814,3518,4221,4925,5628,6332,7035,7739,8442,9146,9849,10553,11256,11960,12663,13367,14070,14774,15477,16181,16884,17588,18291,18995,19698,20402,21106,21809,22513,23216,23920,24623,25327,26030,26734,27437,28141,28844,29548,30251,30955,31658,32362,33065,33769,34472,35176,35879,36583,37286,37990,38693,39397,40000,40000,40000,40000,40000,40000,40000,40000,40000,40000,40000,40000,40000,40000,40000,40000,40000,40000,40000,40000,40000,40000,40000,40000,40000,40000,40000,40000,40000,40000,40000,40000,40000,40000,40000,40000,40000,40000,40000,40000,40000,40000,40000,40000,40000,40000,40000,40000,40000,40000,40000,40000,40000,40000,40000,40000,40000,40000,40000,40000,40000,40000,40000,40000,40000,40000,40000,40000,40000,40000,40000,40000,40000,40000,40000,40000,40000,40000,40000,40000,40000,40000,40000,40000,40000,40000,39397,38693,37990,37286,36583,35879,35176,34472,33769,33065,32362,31658,30955,30251,29548,28844,28141,27437,26734,26030,25327,24623,23920,23216,22513,21809,21106,20402,19698,18995,18291,17588,16884,16181,15477,14774,14070,13367,12663,11960,11256,10553,9849,9146,8442,7739,7035,6332,5628,4925,4221,3518,2814,2111,1407,704,0   
+        20,21,21,22,23,23,24,25,25,26,27,28,28,29,30,30,31,32,32,33,34,34,35,36,36,37,38,38,39,40,41,41,42,43,43,44,45,45,46,47,47,48,49,49,50,51,51,52,53,53,54,55,56,56,57,58,58,59,60,60,61,62,62,63,64,64,65,66,66,67,68,69,69,70,71,71,72,73,73,74,75,75,76,77,77,78,79,79,80,81,82,82,83,84,84,85,86,86,87,88,88,87,86,86,85,84,84,83,82,82,81,80,79,79,78,77,77,76,75,75,74,73,73,72,71,71,70,69,69,68,67,66,66,65,64,64,63,62,62,61,60,60,59,58,58,57,56,56,55,54,53,53,52,51,51,50,49,49,48,47,47,46,45,45,44,43,43,42,41,41,40,39,38,38,37,36,36,35,34,34,33,32,32,31,30,30,29,28,28,27,26,25,25,24,23,23,22,21,21,20   
 ]   
-        self.triangle_angle = [20,21,21,22,23,24,24,25,26,26,27,28,28,29,30,31,31,32,33,33,34,35,35,36,37,38,38,39,40,40,41,42,43,43,44,45,45,46,47,47,48,49,50,50,51,52,52,53,54,54,55,56,57,57,58,59,59,60,61,62,62,63,64,64,65,66,66,67,68,69,69,70,71,71,72,73,73,74,75,76,76,77,78,78,79,80,81,81,82,83,83,84,85,85,86,87,88,88,89,90,90,89,88,88,87,86,85,85,84,83,83,82,81,81,80,79,78,78,77,76,76,75,74,73,73,72,71,71,70,69,69,68,67,66,66,65,64,64,63,62,62,61,60,59,59,58,57,57,56,55,54,54,53,52,52,51,50,50,49,48,47,47,46,45,45,44,43,43,42,41,40,40,39,38,38,37,36,35,35,34,33,33,32,31,31,30,29,28,28,27,26,26,25,24,24,23,22,21,21,20]
+        self.triangle_angle = [20,21,23,24,26,27,28,30,31,33,34,36,37,38,40,41,43,44,45,47,48,50,51,53,54,55,57,58,60,61,62,64,65,67,68,69,71,72,74,75,77,78,79,81,82,84,85,86,88,89,89,88,86,85,84,82,81,79,78,77,75,74,72,71,69,68,67,65,64,62,61,60,58,57,55,54,53,51,50,48,47,45,44,43,41,40,38,37,36,34,33,31,30,28,27,26,24,23,21,20]
 
         excel_file = pd.ExcelFile('PMA_angle.xlsx')
         self.df_pma_angle = excel_file.parse('Sheet1', usecols="B:C", header=None,nrows=200)
@@ -239,7 +244,7 @@ class DataReceiveThreads(Ui_MainWindow):
 
         desire_angle = self.triangle_angle[0]
         actual_angle = self.triangle_angle[0]
-        learning_array = [0] * 200
+        learning_array = [0] * 100
         first_period = True
         controller_u = 0
         
@@ -249,14 +254,13 @@ class DataReceiveThreads(Ui_MainWindow):
         while True:
 
             # 前 (test/10) 秒不作動
-            if test < 100:
-                Idx = 0    
+            if test < 30:
+                Idx = 0
+            else:
+                Idx = Idx + 1
+                if Idx == 100:
+                    Idx = 0 
             test = test + 1
-            
-            # 循環
-            if Idx == 200:
-                Idx = 0 
-            Idx = Idx + 1
 
             ####################### 目標路徑 #######################
             desire_angle = self.triangle_angle[Idx]
@@ -286,16 +290,16 @@ class DataReceiveThreads(Ui_MainWindow):
             ########################################################
             
             # 控制系統
-            controller_u, learning_array, first_period, C = control_system(desire_angle,actual_angle,learning_array,Idx,first_period, C)
+            controller_u, learning_array, first_period, C = control_system(controller_u,desire_angle,actual_angle,learning_array,Idx,first_period, C)
 
             # 儲存結果
             queue_receive_deg.put(actual_angle)
             queue_desire_deg.put(desire_angle)
             queue_voltage.put(controller_u)
 
-            # 轉成 16 bits 電壓值
-            controller_u = controller_u/10*65535+12350
-            controller_u = int(controller_u)
+            # # 轉成 16 bits 電壓值
+            # controller_u = controller_u/10*65535
+            # controller_u = int(controller_u)
 
             if simulation == False:
 
@@ -306,9 +310,9 @@ class DataReceiveThreads(Ui_MainWindow):
 
                 self.ser_1.write(controller_u.to_bytes(2, byteorder='big'))
 
-
+            #queue_voltage.put(controller_u)
             if simulation == True:
-                actual_angle = return_simulation_pma_angle(self.df_pma_angle,controller_u)
+                actual_angle = return_simulation_pma_angle(self.df_pma_angle,int(controller_u/10*65535),actual_angle)
 
             time.sleep(1/10) #delay 0.1 sec
 

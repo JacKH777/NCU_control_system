@@ -1,13 +1,9 @@
-import pandas as pd
-from scipy.interpolate import interp1d
-
-excel_file = pd.ExcelFile('PMA_angle.xlsx')
-df_pma_angle = excel_file.parse('Sheet1', usecols="B:C", header=None,nrows=200)
-
-def return_simulation_pma_angle(df_pma_angle,voltage_65535):
-    #pma_angle = df_pma_angle[1].interpolate(method='linear', limit_direction='both', limit_area='inside')
-    interpolated_function = interp1d(df_pma_angle[1], df_pma_angle[2], kind='linear', fill_value='extrapolate')
-    pma_angle = interpolated_function(voltage_65535)
-    return pma_angle
-
-print(return_simulation_pma_angle(df_pma_angle,12500))
+import numpy as np
+e = 1
+beta_r = 10         # 10
+m_0 = 1            # 1
+f_2_bar = 1.5       # 1.5
+eta = 1          # 0.01
+rho = 1.5           # 1 error限制範圍
+u_l2 = (m_0/f_2_bar)*((eta*np.log(np.cosh(rho))*np.tanh(e))/((np.log(np.cosh(rho))-np.log(np.cosh(e)))**2))
+print(u_l2)

@@ -47,15 +47,15 @@ class MplCanvas(FigureCanvas):
                 if i == 0 :
                         # set x, y lim
                         self.axs[i].set_xlim(0, time_span)    
-                        self.axs[i].set_ylim(-0.5, 70000)
+                        self.axs[i].set_ylim(-0.5, 10)
                 elif i in [1, 2, 3]:
                         # set x, y lim
                         self.axs[i].set_xlim(0, time_span)    
-                        self.axs[i].set_ylim(-10, 120)   
+                        self.axs[i].set_ylim(-10, 100)   
                 else :                               
                         # set x, y lim
                         self.axs[i].set_xlim(0, time_span)    
-                        self.axs[i].set_ylim(-10, 10)  
+                        self.axs[i].set_ylim(-20, 20)  
                 # set label fontsize
                 self.axs[i].tick_params(axis='both', which='major', labelsize=6)
                 self.axs[i].yaxis.get_offset_text().set_fontsize(6)
@@ -73,6 +73,8 @@ class MplCanvas(FigureCanvas):
                 self.axs[i].grid(axis='y') # 设置 y 就在轴方向显示网格线
                 self.axs[i].grid(which="minor",alpha=0.3)
 
+        line2, = self.axs[3].plot([], [], c=colors[2], lw=linewidth)
+        self.lines.append(line2)
 
         # Hide x labels and tick labels for top plots and y ticks for right plots.
         for ax in self.axs:

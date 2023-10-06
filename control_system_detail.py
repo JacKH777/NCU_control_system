@@ -35,11 +35,11 @@ def control_system(old_u,desire_angle,actual_angle,learning_array,array_index,fi
     C.insert(e)
 
     ################## Control Value ##########################
-    smc_lambda = 0.2    # 0.2 越快到滑膜面
-    k_l1 = 0.01          # 0.5
-    k_l2 = 0.005          # 0.1 趨近速度增加，抖振增加
-    beta_r = 0.01         # 10
-    m_0 = 0.8            # 1
+    smc_lambda = 0.4    # 0.2 越快到滑膜面
+    k_l1 = 0.02          # 0.5
+    k_l2 = 0.005          # 0.1 趨近速度增加，抖振增
+    beta_r = 0.1         # 10
+    m_0 = 0.4            # 1
     f_2_bar = 1.5       # 1.5
     eta = 0.01          # 0.01
     rho = 5           # 1 error限制範圍
@@ -65,6 +65,7 @@ def control_system(old_u,desire_angle,actual_angle,learning_array,array_index,fi
 
     u_l2 = (m_0/f_2_bar)*((eta*np.log(np.cosh(rho))*np.tanh(e))/((np.log(np.cosh(rho))-np.log(np.cosh(e)))**2))
     u = (m_0/f_2_bar)*((-k_l2 * np.sign(s)) - w_r_head  - np.tanh(e)) - u_l2
+    u = (m_0/f_2_bar)*(-k_l2 * np.sign(s))
     u = u + old_u
     return u, learning_array, first_period, C
 

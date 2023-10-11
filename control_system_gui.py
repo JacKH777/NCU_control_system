@@ -28,7 +28,7 @@ class MplCanvas(FigureCanvas):
     def __init__(self, parent=None):
         color = 'steelblue'
         linewidth = 0.8
-        time_span = 1000
+        time_span = 600
 
         fig = plt.figure()
         gs = fig.add_gridspec(5, hspace=0.1)

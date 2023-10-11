@@ -112,7 +112,7 @@ class MyMainWindow(QtWidgets. QMainWindow, Ui_MainWindow):
         while not self.queue_voltage.empty():
             temp = self.queue_voltage.get() 
             del temp
-        if len(self.raw_total) >= 1000: 
+        if len(self.raw_total) >= 600: 
             self.raw_total = self.raw_total[-1:]
             self.raw_total = np.append(self.raw_total, raw)
         else:
@@ -121,7 +121,7 @@ class MyMainWindow(QtWidgets. QMainWindow, Ui_MainWindow):
         while not self.queue_receive_deg.empty():
             temp = self.queue_receive_deg.get() 
             del temp
-        if len(self.raw_total_deg) >= 1000: 
+        if len(self.raw_total_deg) >= 600: 
             self.raw_total_deg = self.raw_total_deg[-1:]
         else:
             self.raw_total_deg = np.append(self.raw_total_deg, raw_deg)
@@ -131,7 +131,7 @@ class MyMainWindow(QtWidgets. QMainWindow, Ui_MainWindow):
         while not self.queue_desire_deg.empty():
             temp = self.queue_desire_deg.get() 
             del temp
-        if len(self.desire_deg_array) >= 1000: 
+        if len(self.desire_deg_array) >= 600: 
             self.desire_deg_array = self.desire_deg_array[-1:]
         else:
             self.desire_deg_array = np.append(self.desire_deg_array, desire_deg)
@@ -291,6 +291,13 @@ class DataReceiveThreads(Ui_MainWindow):
             
             # 控制系統
             controller_u, learning_array, first_period, C = control_system(controller_u,desire_angle,actual_angle,learning_array,Idx,first_period, C)
+
+            # test
+            if first_period == False:
+                if Idx == range(15,55) and Idx != 30:
+                    actual_angle = actual_angle - (20/(abs(30-Idx)))
+                elif Idx == 30:
+                    actual_angle = actual_angle - 20
 
             # 儲存結果
             queue_receive_deg.put(actual_angle)

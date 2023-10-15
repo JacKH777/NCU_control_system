@@ -79,6 +79,6 @@ def return_simulation_pma_angle(df_pma_angle,voltage_65535,actual_angle):
     return pma_angle 
 
 if __name__ == '__main__':
-    e = get_x(25)
+    e = get_x(20) - get_x(90)
     print(e)
  

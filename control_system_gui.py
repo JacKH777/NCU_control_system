@@ -28,14 +28,14 @@ class MplCanvas(FigureCanvas):
     def __init__(self, parent=None):
         color = 'steelblue'
         linewidth = 0.8
-        time_span = 600
+        time_span = 500
 
         fig = plt.figure()
         gs = fig.add_gridspec(5, hspace=0.1)
         self.axs = gs.subplots(sharex=False, sharey=False)
 
         channel_list = ['Voltage\n(V)', 'Desired Position\n(deg)', 'Actual Position\n(deg)', 'Comparison\n(deg)', 'Error\n(deg)']
-        colors = ['#ff7e26', '#b65e38', '#62856d', '#484c4d', '#073d51']
+        colors = ['#ff7e26', '#b65e38', '#62856d', '#484c4d', '#073d51', '#45818e']
         xticks = [x for x in range(0, time_span + 1, 50)]
         xticklabels = [str((time/10)) for time in range(0,  time_span + 1, 50)]        
         
@@ -51,7 +51,7 @@ class MplCanvas(FigureCanvas):
                 elif i in [1, 2, 3]:
                         # set x, y lim
                         self.axs[i].set_xlim(0, time_span)    
-                        self.axs[i].set_ylim(-10, 100)   
+                        self.axs[i].set_ylim(-5, 105)   
                 else :                               
                         # set x, y lim
                         self.axs[i].set_xlim(0, time_span)    
@@ -73,7 +73,7 @@ class MplCanvas(FigureCanvas):
                 self.axs[i].grid(axis='y') # 设置 y 就在轴方向显示网格线
                 self.axs[i].grid(which="minor",alpha=0.3)
 
-        line2, = self.axs[3].plot([], [], c=colors[2], lw=linewidth)
+        line2, = self.axs[3].plot([], [], c=colors[5], lw=linewidth)
         self.lines.append(line2)
 
         # Hide x labels and tick labels for top plots and y ticks for right plots.

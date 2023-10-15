@@ -112,7 +112,7 @@ class MyMainWindow(QtWidgets. QMainWindow, Ui_MainWindow):
         while not self.queue_voltage.empty():
             temp = self.queue_voltage.get() 
             del temp
-        if len(self.raw_total) >= 600: 
+        if len(self.raw_total) >= 500: 
             self.raw_total = self.raw_total[-1:]
             self.raw_total = np.append(self.raw_total, raw)
         else:
@@ -121,7 +121,7 @@ class MyMainWindow(QtWidgets. QMainWindow, Ui_MainWindow):
         while not self.queue_receive_deg.empty():
             temp = self.queue_receive_deg.get() 
             del temp
-        if len(self.raw_total_deg) >= 600: 
+        if len(self.raw_total_deg) >= 500: 
             self.raw_total_deg = self.raw_total_deg[-1:]
         else:
             self.raw_total_deg = np.append(self.raw_total_deg, raw_deg)
@@ -236,8 +236,9 @@ class DataReceiveThreads(Ui_MainWindow):
 
         C = Control()
 
-        # 模擬模式=True
+        # 模擬模式=True, 步階響應=1
         simulation = True
+        mode = 1
 
         Idx = 0
         test = 0
@@ -264,6 +265,11 @@ class DataReceiveThreads(Ui_MainWindow):
 
             ####################### 目標路徑 #######################
             desire_angle = self.triangle_angle[Idx]
+            if mode == 1:
+                if desire_angle > 55 or test > 100:
+                    desire_angle = 90
+                else :
+                    desire_angle = 20
             #######################################################
 
             ########### Decoder(真實回饋，simulation=False) #########
@@ -292,12 +298,12 @@ class DataReceiveThreads(Ui_MainWindow):
             # 控制系統
             controller_u, learning_array, first_period, C = control_system(controller_u,desire_angle,actual_angle,learning_array,Idx,first_period, C)
 
-            # test
-            if first_period == False:
-                if Idx == range(15,55) and Idx != 30:
-                    actual_angle = actual_angle - (20/(abs(30-Idx)))
-                elif Idx == 30:
-                    actual_angle = actual_angle - 20
+            # # test
+            # if first_period == False:
+            #     if Idx == range(15,55) and Idx != 30:
+            #         actual_angle = actual_angle - (20/(abs(30-Idx)))
+            #     elif Idx == 30:
+            #         actual_angle = actual_angle - 20
 
             # 儲存結果
             queue_receive_deg.put(actual_angle)

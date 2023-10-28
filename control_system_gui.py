@@ -51,7 +51,7 @@ class MplCanvas(FigureCanvas):
                 elif i in [1, 2, 3]:
                         # set x, y lim
                         self.axs[i].set_xlim(0, time_span)    
-                        self.axs[i].set_ylim(-5, 105)   
+                        self.axs[i].set_ylim(-5, 120)   
                 else :                               
                         # set x, y lim
                         self.axs[i].set_xlim(0, time_span)    

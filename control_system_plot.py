@@ -237,8 +237,8 @@ class DataReceiveThreads(Ui_MainWindow):
         C = Control()
 
         # 模擬模式=True, 步階響應=1
-        simulation = True
-        mode = 1
+        simulation = False
+        mode = 0
 
         Idx = 0
         test = 0
@@ -247,15 +247,20 @@ class DataReceiveThreads(Ui_MainWindow):
         actual_angle = self.triangle_angle[0]
         learning_array = [0] * 100
         first_period = True
-        controller_u = 0
-        
+        controller_u = 0.5
+        controller_u_output = 0
+
+        smc_lambda = 0.1   # 0.2 越快到滑膜面
+        k_l1 = 0.01          # 0.5
+        k_l2 = 0.005
+
         first_count = 0
         reset_count = 0
 
         while True:
 
             # 前 (test/10) 秒不作動
-            if test < 30:
+            if test < 50:
                 Idx = 0
             else:
                 Idx = Idx + 1
@@ -288,44 +293,37 @@ class DataReceiveThreads(Ui_MainWindow):
                     reset_count = actual_angle
                     first_count = 1
                 if actual_angle < reset_count:
-                    actual_angle = ((actual_angle-reset_count+16384)/16383*360)+25
+                    actual_angle = ((actual_angle-reset_count+16384)/16383*360)+20
                 else:
-                    actual_angle = ((actual_angle-reset_count)/16383*360)+25
+                    actual_angle = ((actual_angle-reset_count)/16383*360)+20
                 if actual_angle > 350:
-                    actual_angle = 25
+                    actual_angle = 20
             ########################################################
             
             # 控制系統
-            controller_u, learning_array, first_period, C = control_system(controller_u,desire_angle,actual_angle,learning_array,Idx,first_period, C)
-
-            # # test
-            # if first_period == False:
-            #     if Idx == range(15,55) and Idx != 30:
-            #         actual_angle = actual_angle - (20/(abs(30-Idx)))
-            #     elif Idx == 30:
-            #         actual_angle = actual_angle - 20
+            controller_u, learning_array, first_period, C = control_system(controller_u,desire_angle,actual_angle,learning_array,Idx,first_period, C, smc_lambda, k_l1, k_l2)
 
             # 儲存結果
             queue_receive_deg.put(actual_angle)
             queue_desire_deg.put(desire_angle)
             queue_voltage.put(controller_u)
 
-            # # 轉成 16 bits 電壓值
-            # controller_u = controller_u/10*65535
-            # controller_u = int(controller_u)
+            # 轉成 16 bits 電壓值
+            controller_u_output = controller_u/10*65535
+            controller_u_output = int(controller_u_output)
 
             if simulation == False:
 
-                if controller_u>32767:
-                    controller_u = 32767
-                elif controller_u<0:
-                    controller_u = 0
+                if controller_u_output>20000:
+                    controller_u_output = 20000
+                elif controller_u_output<0:
+                    controller_u_output = 0
 
-                self.ser_1.write(controller_u.to_bytes(2, byteorder='big'))
+                self.ser_1.write(controller_u_output.to_bytes(2, byteorder='big'))
 
             #queue_voltage.put(controller_u)
             if simulation == True:
-                actual_angle = return_simulation_pma_angle(self.df_pma_angle,int(controller_u/10*65535),actual_angle)
+                actual_angle = return_simulation_pma_angle(self.df_pma_angle,controller_u_output,actual_angle)
 
             time.sleep(1/10) #delay 0.1 sec
 

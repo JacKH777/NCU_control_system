@@ -131,7 +131,7 @@ class MyMainWindow(QtWidgets. QMainWindow, Ui_MainWindow):
         while not self.queue_desire_deg.empty():
             temp = self.queue_desire_deg.get() 
             del temp
-        if len(self.desire_deg_array) >= 600: 
+        if len(self.desire_deg_array) >= 500: 
             self.desire_deg_array = self.desire_deg_array[-1:]
         else:
             self.desire_deg_array = np.append(self.desire_deg_array, desire_deg)
@@ -152,7 +152,7 @@ class MyMainWindow(QtWidgets. QMainWindow, Ui_MainWindow):
         self.canvas.lines[3].set_data(x_data_1, y_data_1)
         self.canvas.lines[5].set_data(xdat, ydat)
 
-        self.canvas.lines[4].set_data(xdat, y_data_1-ydat)
+        self.canvas.lines[4].set_data(xdat, y_data_1 - ydat)
 
         self.canvas.draw()
 
@@ -247,11 +247,11 @@ class DataReceiveThreads(Ui_MainWindow):
         actual_angle = self.triangle_angle[0]
         learning_array = [0] * 100
         first_period = True
-        controller_u = 0.5
+        controller_u = 0
         controller_u_output = 0
 
-        smc_lambda = 0.1   # 0.2 越快到滑膜面
-        k_l1 = 0.01          # 0.5
+        smc_lambda = 0.2   # 0.2 越快到滑膜面
+        k_l1 = 0.03          # 0.5
         k_l2 = 0.005
 
         first_count = 0
@@ -321,7 +321,6 @@ class DataReceiveThreads(Ui_MainWindow):
 
                 self.ser_1.write(controller_u_output.to_bytes(2, byteorder='big'))
 
-            #queue_voltage.put(controller_u)
             if simulation == True:
                 actual_angle = return_simulation_pma_angle(self.df_pma_angle,controller_u_output,actual_angle)
 

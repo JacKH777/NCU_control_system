@@ -212,10 +212,8 @@ class DataReceiveThreads(Ui_MainWindow):
     def __init__(self):
         self.ser_1 = None
         self.ser_2 = None
-        self.Sine16bit = [
-        20,21,21,22,23,23,24,25,25,26,27,28,28,29,30,30,31,32,32,33,34,34,35,36,36,37,38,38,39,40,41,41,42,43,43,44,45,45,46,47,47,48,49,49,50,51,51,52,53,53,54,55,56,56,57,58,58,59,60,60,61,62,62,63,64,64,65,66,66,67,68,69,69,70,71,71,72,73,73,74,75,75,76,77,77,78,79,79,80,81,82,82,83,84,84,85,86,86,87,88,88,87,86,86,85,84,84,83,82,82,81,80,79,79,78,77,77,76,75,75,74,73,73,72,71,71,70,69,69,68,67,66,66,65,64,64,63,62,62,61,60,60,59,58,58,57,56,56,55,54,53,53,52,51,51,50,49,49,48,47,47,46,45,45,44,43,43,42,41,41,40,39,38,38,37,36,36,35,34,34,33,32,32,31,30,30,29,28,28,27,26,25,25,24,23,23,22,21,21,20   
-]   
-        self.triangle_angle = [20,21,23,24,26,27,28,30,31,33,34,36,37,38,40,41,43,44,45,47,48,50,51,53,54,55,57,58,60,61,62,64,65,67,68,69,71,72,74,75,77,78,79,81,82,84,85,86,88,89,89,88,86,85,84,82,81,79,78,77,75,74,72,71,69,68,67,65,64,62,61,60,58,57,55,54,53,51,50,48,47,45,44,43,41,40,38,37,36,34,33,31,30,28,27,26,24,23,21,20]
+
+        self.triangle_angle = [25,26,28,29,30,31,33,34,35,37,38,39,41,42,43,44,46,47,48,50,51,52,53,55,56,57,59,60,61,62,64,65,66,68,69,70,72,73,74,75,77,78,79,81,82,83,84,86,87,88,88,87,86,84,83,82,81,79,78,77,75,74,73,72,70,69,68,66,65,64,62,61,60,59,57,56,55,53,52,51,50,48,47,46,44,43,42,41,39,38,37,35,34,33,31,30,29,28,26,25]
 
         excel_file = pd.ExcelFile('PMA_angle.xlsx')
         self.df_pma_angle = excel_file.parse('Sheet1', usecols="B:C", header=None,nrows=200)
@@ -230,13 +228,15 @@ class DataReceiveThreads(Ui_MainWindow):
 
         print(f"Open {COM_PORT}...")
         self.ser_1 = serial.Serial(COM_PORT, 115200)
-        print(f"Successfull Open")
-        queue_gui_message.put("Successfull Open")
+        print(f"Successfull Open  {COM_PORT}")
+        queue_gui_message.put(f"Successfull Open")
+
         self.ser_2 = serial.Serial('COM4', 115200)
+        print(f"Successfull Open COM4")
 
         C = Control()
 
-        # 模擬模式=True, 步階響應=1
+        # 模擬模式=True, 步階響應模式 mode=1
         simulation = False
         mode = 0
 
@@ -247,11 +247,11 @@ class DataReceiveThreads(Ui_MainWindow):
         actual_angle = self.triangle_angle[0]
         learning_array = [0] * 100
         first_period = True
-        controller_u = 0
+        controller_u = 0.8
         controller_u_output = 0
 
-        smc_lambda = 0.2   # 0.2 越快到滑膜面
-        k_l1 = 0.03          # 0.5
+        smc_lambda = 0.1   # 0.2 越快到滑膜面
+        k_l1 = 0.013          # 0.5
         k_l2 = 0.005
 
         first_count = 0
@@ -274,7 +274,7 @@ class DataReceiveThreads(Ui_MainWindow):
                 if desire_angle > 55 or test > 100:
                     desire_angle = 90
                 else :
-                    desire_angle = 20
+                    desire_angle = 25
             #######################################################
 
             ########### Decoder(真實回饋，simulation=False) #########
@@ -293,11 +293,12 @@ class DataReceiveThreads(Ui_MainWindow):
                     reset_count = actual_angle
                     first_count = 1
                 if actual_angle < reset_count:
-                    actual_angle = ((actual_angle-reset_count+16384)/16383*360)+20
+                    actual_angle = ((actual_angle-reset_count+16384)/16383*360)+25
                 else:
-                    actual_angle = ((actual_angle-reset_count)/16383*360)+20
+                    actual_angle = ((actual_angle-reset_count)/16383*360)+25
                 if actual_angle > 350:
-                    actual_angle = 20
+                    actual_angle = 25
+
             ########################################################
             
             # 控制系統
@@ -314,12 +315,17 @@ class DataReceiveThreads(Ui_MainWindow):
 
             if simulation == False:
 
-                if controller_u_output>20000:
-                    controller_u_output = 20000
-                elif controller_u_output<0:
+                if controller_u_output>45000:
+                    controller_u_output = 45000
+                elif controller_u_output < 0:
                     controller_u_output = 0
 
+            if actual_angle > 100:
+                controller_u_output = 0
                 self.ser_1.write(controller_u_output.to_bytes(2, byteorder='big'))
+                break
+            
+            self.ser_1.write(controller_u_output.to_bytes(2, byteorder='big'))
 
             if simulation == True:
                 actual_angle = return_simulation_pma_angle(self.df_pma_angle,controller_u_output,actual_angle)

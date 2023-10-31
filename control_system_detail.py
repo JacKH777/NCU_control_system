@@ -39,10 +39,10 @@ def control_system(old_u,desire_angle,actual_angle,learning_array,array_index,fi
     # k_l1 = 0.02          # 0.5
     # k_l2 = 0.01          # 0.1 趨近速度增加，抖振增
     beta_r = 0.01         # 10
-    m_0 = 0.1            # 1
-    f_2_bar = 2       # 1.5
+    m_0 = 0.3            # 0.3
+    f_2_bar = 3       # 1.5
     eta = 0.01          # 0.01
-    rho = 5           # 1 error限制範圍
+    rho = 2           # 1 error限制範圍
     ###########################################################
 
     s = (smc_lambda * C.get_e()) + C.get_dot_e()

@@ -20,7 +20,7 @@ class Control:
 def get_x(angle):
     # mm
     L0 = 300
-    L1 = 50
+    L1 = 70
     L2 = 250
     #
 
@@ -41,8 +41,8 @@ def control_system(old_u,desire_angle,actual_angle,learning_array,array_index,fi
     beta_r = 0.01         # 10
     m_0 = 0.3            # 0.3
     f_2_bar = 3       # 1.5
-    eta = 0.01          # 0.01
-    rho = 2           # 1 error限制範圍
+    eta = 0.0001          # 0.01
+    rho = 4.5          # 1 error限制範圍
     ###########################################################
 
     s = (smc_lambda * C.get_e()) + C.get_dot_e()

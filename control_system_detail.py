@@ -8,7 +8,7 @@ class Control:
 
     def insert(self, e):
         if e != self.e:
-            self.dot_e = (e - self.e)/0.1
+            self.dot_e = (e - self.e)*10
         self.e = e
 
     def get_e(self):
@@ -39,10 +39,10 @@ def control_system(old_u,desire_angle,actual_angle,learning_array,array_index,fi
     # k_l1 = 0.02          # 0.5
     # k_l2 = 0.01          # 0.1 趨近速度增加，抖振增
     beta_r = 0.01         # 10
-    m_0 = 0.3            # 0.3
+    m_0 = 0.05            # 0.3
     f_2_bar = 3       # 1.5
-    eta = 0.0001          # 0.01
-    rho = 4.5          # 1 error限制範圍
+    eta = 0.001          # 0.01
+    rho = 4          # 1 error限制範圍
     ###########################################################
 
     s = (smc_lambda * C.get_e()) + C.get_dot_e()
@@ -54,9 +54,9 @@ def control_system(old_u,desire_angle,actual_angle,learning_array,array_index,fi
         learning_array[array_index] = -beta_r
     
     if first_period==True:
-        w_r_head = k_l1*s*(array_index/100)
+        w_r_head = k_l1*s*(array_index/150)
         learning_array[array_index] = w_r_head
-        if array_index == 99:
+        if array_index == 499:
             first_period = False
     else:
         w_r_head = learning_array[array_index] + k_l1*s
@@ -65,6 +65,10 @@ def control_system(old_u,desire_angle,actual_angle,learning_array,array_index,fi
 
     u_l2 = (m_0/f_2_bar)*((eta*np.log(np.cosh(rho))*np.tanh(e))/((np.log(np.cosh(rho))-np.log(np.cosh(e)))**2))
     u = (m_0/f_2_bar)*((-k_l2 * np.sign(s)) - w_r_head  - np.tanh(e)) - u_l2
+    if u > 0.05:
+        u = 0.05
+    elif u<-0.05:
+        u = -0.05
     u = u + old_u
     return u, learning_array, first_period, C
 

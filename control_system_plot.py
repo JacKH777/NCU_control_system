@@ -16,9 +16,8 @@ from datetime import datetime
 from multiprocessing import Queue
 
 import pandas as pd
-from scipy.interpolate import interp1d
 
-from control_system_detail import control_system,Control,return_simulation_pma_angle
+from smc_system_detail import control_system,Control,return_simulation_pma_angle
 
 
 

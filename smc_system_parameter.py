@@ -1,8 +1,7 @@
-from control_system_detail import control_system,Control,return_simulation_pma_angle
+from smc_system_detail import control_system,Control,return_simulation_pma_angle
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
-from mpl_toolkits.mplot3d import Axes3D
 
 excel_file = pd.ExcelFile('PMA_angle.xlsx')
 df_pma_angle = excel_file.parse('Sheet1', usecols="B:C", header=None,nrows=200)

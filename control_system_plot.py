@@ -236,7 +236,7 @@ class DataReceiveThreads(Ui_MainWindow):
         C = Control()
 
         # 模擬模式=True, 步階響應模式 mode=1
-        simulation = False
+        simulation = True
         mode = 0
 
         Idx = 0

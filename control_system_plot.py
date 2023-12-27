@@ -19,6 +19,8 @@ import pandas as pd
 
 from smc_system_detail import control_system,Control,return_simulation_pma_angle
 
+import skfuzzy as fuzz
+import skfuzzy.control as ctrl
 
 
 # https://www.pythonguis.com/tutorials/plotting-matplotlib/
@@ -256,6 +258,102 @@ class DataReceiveThreads(Ui_MainWindow):
         first_count = 0
         reset_count = 0
 
+        input_error = np.arange(-11, 11, 0.1, np.float32)
+        input_delta = np.arange(-11, 11, 0.1, np.float32)
+        output_u = np.arange(-11, 11, 0.1, np.float32)
+        error = ctrl.Antecedent(input_error, 'error')
+        delta = ctrl.Antecedent(input_delta, 'delta')
+        output = ctrl.Consequent(output_u, 'output')
+        error['nb'] = fuzz.gaussmf(error.universe, -5,2)
+        error['nm'] = fuzz.gaussmf(error.universe, -3,2)
+        error['ns'] = fuzz.gaussmf(error.universe, -1,2)
+        error['zo'] = fuzz.gaussmf(error.universe, 0,2)
+        error['ps'] = fuzz.gaussmf(error.universe, 1,2)
+        error['pm'] = fuzz.gaussmf(error.universe, 3,2)
+        error['pb'] = fuzz.gaussmf(error.universe, 5,2)
+
+        delta['nb'] = fuzz.gaussmf(delta.universe, -5,2)
+        delta['nm'] = fuzz.gaussmf(delta.universe, -3,2)
+        delta['ns'] = fuzz.gaussmf(delta.universe, -1,2)
+        delta['zo'] = fuzz.gaussmf(delta.universe, 0,2)
+        delta['ps'] = fuzz.gaussmf(delta.universe, 1,2)
+        delta['pm'] = fuzz.gaussmf(delta.universe, 3,2)
+        delta['pb'] = fuzz.gaussmf(delta.universe, 5,2)
+
+        output['nb'] = fuzz.gaussmf(output.universe, -5,2)
+        output['nm'] = fuzz.gaussmf(output.universe, -3,2)
+        output['ns'] = fuzz.gaussmf(output.universe, -1,2)
+        output['zo'] = fuzz.gaussmf(output.universe, 0,2)
+        output['ps'] = fuzz.gaussmf(output.universe, 1,2)
+        output['pm'] = fuzz.gaussmf(output.universe, 3,2)
+        output['pb'] = fuzz.gaussmf(output.universe, 5,2)
+
+        rule0 = ctrl.Rule(antecedent=(error['nb'] & delta['nb']), consequent=output['nb'], label='rule nb')
+
+        rule1 = ctrl.Rule(antecedent=((error['nm'] & delta['nb']) |
+                                    (error['ns'] & delta['nb']) |
+                                    (error['nb'] & delta['nm']) |
+                                    (error['nm'] & delta['nm']) |
+                                    (error['nb'] & delta['ns'])
+                                    ), consequent=output['nm'], label='rule nm')
+
+        rule2 = ctrl.Rule(antecedent=((error['zo'] & delta['nb']) |
+                                    (error['ps'] & delta['nb']) |
+                                    (error['pm'] & delta['nb']) |
+                                    (error['ns'] & delta['nm']) |
+                                    (error['zo'] & delta['nm']) |
+                                    (error['ps'] & delta['nm']) |
+                                    (error['nm'] & delta['ns']) |
+                                    (error['ns'] & delta['ns']) |
+                                    (error['zo'] & delta['ns']) |
+                                    (error['nb'] & delta['zo']) |
+                                    (error['nm'] & delta['zo']) |
+                                    (error['ns'] & delta['zo']) |
+                                    (error['nb'] & delta['ps']) |
+                                    (error['nm'] & delta['ps']) |
+                                    (error['nb'] & delta['pm']) 
+                                    ), consequent=output['ns'], label='rule ns')
+
+        rule3 = ctrl.Rule(antecedent=((error['pb'] & delta['nb']) |
+                                    (error['pm'] & delta['nm']) |
+                                    (error['ps'] & delta['ns']) |
+                                    (error['zo'] & delta['zo']) |
+                                    (error['ns'] & delta['ps']) |
+                                    (error['nm'] & delta['pm']) |
+                                    (error['nb'] & delta['pb'])
+                                    ), consequent=output['zo'], label='rule zo')
+
+        rule4 = ctrl.Rule(antecedent=((error['pb'] & delta['nm']) |
+                                    (error['pm'] & delta['ns']) |
+                                    (error['pb'] & delta['ns']) |
+                                    (error['ps'] & delta['zo']) |
+                                    (error['pm'] & delta['zo']) |
+                                    (error['pb'] & delta['zo']) |
+                                    (error['pm'] & delta['ps']) |
+                                    (error['ps'] & delta['ps']) |
+                                    (error['zo'] & delta['ps']) |
+                                    (error['ps'] & delta['pm']) |
+                                    (error['zo'] & delta['pm']) |
+                                    (error['ns'] & delta['pm']) |
+                                    (error['ns'] & delta['pb']) |
+                                    (error['nm'] & delta['pb']) |
+                                    (error['zo'] & delta['pb']) 
+                                    ), consequent=output['ps'], label='rule ps')
+
+        rule5 = ctrl.Rule(antecedent=((error['pb'] & delta['ps']) |
+                                    (error['pm'] & delta['pm']) |
+                                    (error['pb'] & delta['pm']) |
+                                    (error['ps'] & delta['pb']) |
+                                    (error['pm'] & delta['pb'])
+                                    ), consequent=output['pm'], label='rule pm')
+
+        rule6 = ctrl.Rule(antecedent=(error['pb'] & delta['pb']), consequent=output['pb'], label='rule pb')
+
+        system = ctrl.ControlSystem(rules=[rule0, rule1, rule2, rule3, rule4, rule5, rule6])
+        sim = ctrl.ControlSystemSimulation(system)
+        last_delta = 0
+        new_u = 0
+
         while True:
 
             # 前 (test/10) 秒不作動
@@ -301,7 +399,18 @@ class DataReceiveThreads(Ui_MainWindow):
             ########################################################
             
             # 控制系統
-            controller_u, learning_array, first_period, C = control_system(controller_u,desire_angle,actual_angle,learning_array,Idx,first_period, C, smc_lambda, k_l1, k_l2)
+            #
+            # controller_u, learning_array, first_period, C = control_system(controller_u,desire_angle,actual_angle,learning_array,Idx,first_period, C, smc_lambda, k_l1, k_l2)
+            #
+            error = desire_angle - actual_angle
+            sim.input['error'] = error
+            sim.input['delta'] = last_delta - error
+            last_delta = error
+            sim.compute()
+            new_u = sim.output['output'] * 0.01
+            controller_u = controller_u + new_u
+
+            
 
             # 儲存結果
             queue_receive_deg.put(actual_angle)

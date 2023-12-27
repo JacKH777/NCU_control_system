@@ -409,7 +409,7 @@ class DataReceiveThreads(Ui_MainWindow):
             sim.compute()
             new_u = sim.output['output'] * 0.01
             controller_u = controller_u + new_u
-
+            print(last_delta - error , error)
             
 
             # 儲存結果

@@ -135,7 +135,8 @@ class fuzzy_system:
         self.sim.compute()
         # self.output.view(sim=self.sim)
         output_m = self.output.Output_membership(sim=self.sim)
-        return output_m
+        new_u = self.sim.output['output']
+        return output_m, new_u 
     
     def output_gauss_learning(self,error,learning_rate,output_array_m):
         output_array_m = np.asarray(output_array_m)
@@ -143,7 +144,11 @@ class fuzzy_system:
         output_g_width = np.asarray(self.output_gauss_width)
         sum_output = np.sum(output_array_m * output_g_center)
         new_gauss_center = output_g_center + (learning_rate * error * output_g_width * output_array_m / sum_output)
-        new_gauss_width = output_g_width + (learning_rate * error * output_g_width/ (sum_output^2))*((output_g_width * sum_output) - np.sum(output_g_width * output_g_center))
+        new_gauss_width = output_g_width + (learning_rate * error * output_g_width/ (sum_output**2))*((output_g_width * sum_output) - np.sum(output_g_width * output_g_center))
 
-        return new_gauss_center,new_gauss_width
+        return new_gauss_center,new_gauss_width,(learning_rate * error * output_g_width * output_array_m / sum_output),(learning_rate * error * output_g_width/ (sum_output**2))*((output_g_width * sum_output) - np.sum(output_g_width * output_g_center))
+
+    def new_output_gauss(self,new_gauss_center,new_gauss_width):
+        self.output_gauss_center = new_gauss_center
+        self.output_gauss_width = new_gauss_width
         

@@ -215,8 +215,7 @@ class DataReceiveThreads(Ui_MainWindow):
         self.ser_1 = None
         self.ser_2 = None
 
-        self.triangle_angle = [25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,25,26,26,26,26,26,26,26,26,26,26,26,27,27,27,27,27,27,27,28,28,28,28,28,28,29,29,29,29,29,29,30,30,30,30,30,31,31,31,31,32,32,32,32,33,33,33,33,34,34,34,34,35,35,35,36,36,36,36,37,37,37,38,38,38,39,39,39,40,40,40,41,41,41,42,42,42,43,43,43,44,44,44,45,45,45,46,46,46,47,47,48,48,48,49,49,49,50,50,50,51,51,52,52,52,53,53,53,54,54,55,55,55,55,56,56,57,57,57,58,58,58,59,59,60,60,60,61,61,61,62,62,62,63,63,64,64,64,65,65,65,66,66,66,67,67,67,68,68,68,69,69,69,70,70,70,71,71,71,72,72,72,73,73,73,74,74,74,74,75,75,75,76,76,76,76,77,77,77,77,78,78,78,78,79,79,79,79,80,80,80,80,80,81,81,81,81,81,81,82,82,82,82,82,82,83,83,83,83,83,83,83,84,84,84,84,84,84,84,84,84,84,84,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,85,84,84,84,84,84,84,84,84,84,84,83,83,83,83,83,83,83,83,82,82,82,82,82,82,81,81,81,81,81,80,80,80,80,80,79,79,79,79,79,78,78,78,78,77,77,77,77,76,76,76,75,75,75,75,74,74,74,73,73,73,73,72,72,72,71,71,71,70,70,70,69,69,69,68,68,68,67,67,67,66,66,66,65,65,64,64,64,63,63,63,62,62,62,61,61,60,60,60,59,59,59,58,58,57,57,57,56,56,56,55,55,54,54,54,53,53,53,52,52,51,51,51,50,50,50,49,49,48,48,48,47,47,47,46,46,46,45,45,44,44,44,43,43,43,42,42,42,41,41,41,40,40,40,39,39,39,38,38,38,37,37,37,37,36,36,36,35,35,35,35,34,34,34,33,33,33,33,32,32,32,32,31,31,31,31,31,30,30,30,30,30,29,29,29,29,29,28,28,28,28,28,28,27,27,27,27,27,27,27,27,26,26,26,26,26,26,26,26,26,26]
-
+        self.triangle_angle = [25,26,26,27,28,28,29,30,30,31,31,32,33,33,34,35,35,36,37,37,38,39,39,40,40,41,42,42,43,44,44,45,46,46,47,48,48,49,49,50,51,51,52,53,53,54,55,55,56,57,57,58,58,59,60,60,61,62,62,63,64,64,65,66,66,67,67,68,69,69,70,71,71,72,73,73,74,75,75,76,76,77,78,78,79,80,80,81,82,82,83,84,84,85,85,86,87,87,88,89,89,88,87,87,86,85,85,84,84,83,82,82,81,80,80,79,78,78,77,76,76,75,75,74,73,73,72,71,71,70,69,69,68,67,67,66,66,65,64,64,63,62,62,61,60,60,59,58,58,57,57,56,55,55,54,53,53,52,51,51,50,49,49,48,48,47,46,46,45,44,44,43,42,42,41,40,40,39,39,38,37,37,36,35,35,34,33,33,32,31,31,30,30,29,28,28,27,26,26,25]
         excel_file = pd.ExcelFile('PMA_angle.xlsx')
         self.df_pma_angle = excel_file.parse('Sheet1', usecols="B:C", header=None,nrows=200)
 
@@ -239,7 +238,7 @@ class DataReceiveThreads(Ui_MainWindow):
         C = Control()
 
         # 模擬模式=True, 步階響應模式 mode=1
-        simulation = True
+        simulation = False
         mode = 0
 
         Idx = 0
@@ -254,7 +253,7 @@ class DataReceiveThreads(Ui_MainWindow):
 
         smc_lambda = 0.1   # 0.2 越快到滑膜面
         k_l1 = 0.05          # 0.5
-        k_l2 = 0.02
+        k_l2 = 0.02  
 
         first_count = 0
         reset_count = 0
@@ -265,18 +264,14 @@ class DataReceiveThreads(Ui_MainWindow):
 
         while True:
 
-            # # 前 (test/10) 秒不作動
-            # if test < 50:
-            #     Idx = 0
-            # else:
-            #     Idx = Idx + 1
-            #     if Idx == 500:
-            #         Idx = 0 
+            # 前 (test/10) 秒不作動
+            if test < 100:
+                Idx = 0
+            else:
+                Idx = Idx + 1
+                if Idx == 200:
+                    Idx = 0 
 
- 
-            if Idx == 499:
-                Idx = 0 
-            Idx = Idx + 1
             test = test + 1
 
             ####################### 目標路徑 #######################
@@ -319,11 +314,11 @@ class DataReceiveThreads(Ui_MainWindow):
             error = desire_angle - actual_angle
             a.restart_system()
             output_m,new_u = a.calculate(error,last_delta - error)
-            new_gauss_center,new_gauss_width,watch1,watch2 = a.output_gauss_learning(error,0.00000001,output_m)
-            a.new_output_gauss(new_gauss_center,new_gauss_width)
-            new_u = new_u * 0.05
+            new_output_gauss_center,new_output_gauss_width,new_error_gauss_center,new_error_gauss_width,new_delta_gauss_center,new_delta_gauss_width = a.output_gauss_learning(error,last_delta - error,0.0000001,0.0000001,0.0000001,output_m)
+            a.new_output_gauss(new_output_gauss_center,new_output_gauss_width,new_error_gauss_center,new_error_gauss_width,new_delta_gauss_center,new_delta_gauss_width)
+            new_u = new_u * 0.03
             controller_u = controller_u + new_u
-            print(new_gauss_center, new_gauss_width)
+            print('1',new_output_gauss_center,new_output_gauss_width,new_error_gauss_center,new_error_gauss_width,new_delta_gauss_center,new_delta_gauss_width )
             last_delta = error
             
 
@@ -353,7 +348,7 @@ class DataReceiveThreads(Ui_MainWindow):
             if simulation == True:
                 actual_angle = return_simulation_pma_angle(self.df_pma_angle,controller_u_output,actual_angle)
 
-            time.sleep(1/50) #delay 0.1 sec
+            # time.sleep(1/50) #delay 0.1 sec
 
 
 

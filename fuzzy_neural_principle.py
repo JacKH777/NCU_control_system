@@ -6,13 +6,13 @@ import numpy as np
 class fuzzy_system:
     def __init__(self):
         # fuzzy rule
-        self.error_gauss_center = [-5, -3, -1, 0, 1, 3, 5]
-        self.delta_gauss_center = [-5, -3, -1, 0, 1, 3, 5]
-        self.output_gauss_center = [-5, -3, -1, 0, 1, 3, 5]
+        self.error_gauss_center = [-15, -10, -5, 0, 5, 10, 15]
+        self.delta_gauss_center = [-15, -10, -5, 0, 7, 10, 15]
+        self.output_gauss_center = [-15, -10, -5, 0, 7, 10, 15]
 
-        self.error_gauss_width = [2, 2, 2, 2, 2, 2, 2]
-        self.delta_gauss_width = [2, 2, 2, 2, 2, 2, 2]
-        self.output_gauss_width = [2, 2, 2, 2, 2, 2, 2]
+        self.error_gauss_width = [5, 5, 5, 5, 5, 5, 5]
+        self.delta_gauss_width = [5, 5, 5, 5, 5, 5, 5]
+        self.output_gauss_width = [5, 5, 5, 5, 5, 5, 5]
 
     def get_gauss_center(self, case, index):
         if case == 'error':
@@ -32,9 +32,9 @@ class fuzzy_system:
     
     def restart_system(self):
 
-        input_error = np.arange(-11, 11, 0.1, np.float32)
-        input_delta = np.arange(-11, 11, 0.1, np.float32)
-        output_u = np.arange(-11, 11, 0.1, np.float32)
+        input_error = np.arange(-26, 26, 0.1, np.float32)
+        input_delta = np.arange(-26, 26, 0.1, np.float32)
+        output_u = np.arange(-26, 26, 0.1, np.float32)
 
         error = ctrl.Antecedent(input_error, 'error')
         delta = ctrl.Antecedent(input_delta, 'delta')
@@ -138,17 +138,42 @@ class fuzzy_system:
         new_u = self.sim.output['output']
         return output_m, new_u 
     
-    def output_gauss_learning(self,error,learning_rate,output_array_m):
+    def output_gauss_learning(self,error,delta,output_learning_rate,error_learning_rate,delta_learning_rate,output_array_m):
         output_array_m = np.asarray(output_array_m)
         output_g_center = np.asarray(self.output_gauss_center)
         output_g_width = np.asarray(self.output_gauss_width)
         sum_output = np.sum(output_array_m * output_g_center)
-        new_gauss_center = output_g_center + (learning_rate * error * output_g_width * output_array_m / sum_output)
-        new_gauss_width = output_g_width + (learning_rate * error * output_g_width/ (sum_output**2))*((output_g_width * sum_output) - np.sum(output_g_width * output_g_center))
+        new_output_gauss_center = output_g_center + (output_learning_rate * error * output_g_width * output_array_m / sum_output)
+        fun = output_g_center/ (sum_output**2)*(output_g_width * sum_output) - np.sum(output_g_width * output_g_center)
+        new_output_gauss_width = output_g_width + (output_learning_rate * error * output_array_m  * fun)
 
-        return new_gauss_center,new_gauss_width,(learning_rate * error * output_g_width * output_array_m / sum_output),(learning_rate * error * output_g_width/ (sum_output**2))*((output_g_width * sum_output) - np.sum(output_g_width * output_g_center))
+        # center
+        error_g_center = np.asarray(self.error_gauss_center)
+        error_g_width = np.asarray(self.error_gauss_width)
+        error_memberships = np.asarray([fuzz.gaussmf(error, c, s) for c, s in zip(error_g_center, error_g_width)])
 
-    def new_output_gauss(self,new_gauss_center,new_gauss_width):
-        self.output_gauss_center = new_gauss_center
-        self.output_gauss_width = new_gauss_width
+        delta_g_center = np.asarray(self.delta_gauss_center)
+        delta_g_width = np.asarray(self.delta_gauss_width)
+        delta_memberships = np.asarray([fuzz.gaussmf(delta, c, s) for c, s in zip(delta_g_center, delta_g_width)])
+
+        smaller = np.less(error_memberships, delta_memberships)  # 或者使用 arr1 < arr2
+        error_used = np.where(smaller, 1, 0)
+        delta_used = 1-error_used
+
+        new_error_gauss_center = error_g_center - (error_learning_rate*2*(error - error_g_center)/(error_g_width**2)*(-error*output_g_width*fun*error_used))
+        new_error_gauss_width = error_g_center - (error_learning_rate*2*(error - error_g_center)**2/(error_g_width**3)*(-error*output_g_width*fun*error_used))
+
+        new_delta_gauss_center = delta_g_center - (delta_learning_rate*2*(delta - delta_g_center)/(delta_g_width**2)*(-error*output_g_width*fun*delta_used))
+        new_delta_gauss_width = delta_g_center - (delta_learning_rate*2*(delta - delta_g_center)**2/(delta_g_width**3)*(-error*output_g_width*fun*delta_used))
+        return new_output_gauss_center,new_output_gauss_width,new_error_gauss_center,new_error_gauss_width,new_delta_gauss_center,new_delta_gauss_width
+
+ 
+
+    def new_output_gauss(self,new_output_gauss_center,new_output_gauss_width,new_error_gauss_center,new_error_gauss_width,new_delta_gauss_center,new_delta_gauss_width):
+        self.output_gauss_center = new_output_gauss_center
+        self.output_gauss_width = new_output_gauss_width
+        self.error_gauss_center = new_error_gauss_center
+        self.error_gauss_width = new_error_gauss_width
+        self.delta_gauss_center = new_delta_gauss_center
+        self.error_gauss_width = new_delta_gauss_width
         

@@ -35,6 +35,8 @@ from scipy import signal
 
 import serial.tools.list_ports
 
+from decoder_function import decoder
+
 
 def styled_text(text=None, color="#999999"):
     if text is None:
@@ -215,7 +217,7 @@ class DataReceiveThreads(Ui_MainWindow):
         self.ser_1 = None
         self.ser_2 = None
 
-        self.triangle_angle = [25,26,26,27,28,28,29,30,30,31,31,32,33,33,34,35,35,36,37,37,38,39,39,40,40,41,42,42,43,44,44,45,46,46,47,48,48,49,49,50,51,51,52,53,53,54,55,55,56,57,57,58,58,59,60,60,61,62,62,63,64,64,65,66,66,67,67,68,69,69,70,71,71,72,73,73,74,75,75,76,76,77,78,78,79,80,80,81,82,82,83,84,84,85,85,86,87,87,88,89,89,88,87,87,86,85,85,84,84,83,82,82,81,80,80,79,78,78,77,76,76,75,75,74,73,73,72,71,71,70,69,69,68,67,67,66,66,65,64,64,63,62,62,61,60,60,59,58,58,57,57,56,55,55,54,53,53,52,51,51,50,49,49,48,48,47,46,46,45,44,44,43,42,42,41,40,40,39,39,38,37,37,36,35,35,34,33,33,32,31,31,30,30,29,28,28,27,26,26,25]
+        self.triangle_angle = [30,31,31,32,32,33,34,34,35,35,36,37,37,38,38,39,40,40,41,41,42,43,43,44,44,45,46,46,47,47,48,49,49,50,51,51,52,52,53,54,54,55,55,56,57,57,58,58,59,60,60,61,61,62,63,63,64,64,65,66,66,67,67,68,69,69,70,70,71,72,72,73,73,74,75,75,76,76,77,78,78,79,79,80,81,81,82,82,83,84,84,85,85,86,87,87,88,88,89,90,90,89,88,88,87,87,86,85,85,84,84,83,82,82,81,81,80,79,79,78,78,77,76,76,75,75,74,73,73,72,72,71,70,70,69,69,68,67,67,66,66,65,64,64,63,63,62,61,61,60,60,59,58,58,57,57,56,55,55,54,54,53,52,52,51,51,50,49,49,48,47,47,46,46,45,44,44,43,43,42,41,41,40,40,39,38,38,37,37,36,35,35,34,34,33,32,32,31,31,30]
         excel_file = pd.ExcelFile('PMA_angle.xlsx')
         self.df_pma_angle = excel_file.parse('Sheet1', usecols="B:C", header=None,nrows=200)
 
@@ -232,7 +234,9 @@ class DataReceiveThreads(Ui_MainWindow):
         print(f"Successfull Open  {COM_PORT}")
         queue_gui_message.put(f"Successfull Open")
 
-        self.ser_2 = serial.Serial('COM4', 115200)
+        # self.ser_2 = serial.Serial('COM4', 115200)
+        right_hand = decoder()
+        right_hand.get_com_port('COM4')
         print(f"Successfull Open COM4")
 
         C = Control()
@@ -258,9 +262,10 @@ class DataReceiveThreads(Ui_MainWindow):
         first_count = 0
         reset_count = 0
 
-        last_delta = 0
+        last_error = 0
         new_u = 0
         a = fuzzy_system()
+
 
         while True:
 
@@ -284,26 +289,27 @@ class DataReceiveThreads(Ui_MainWindow):
             #######################################################
 
             ########### Decoder(真實回饋，simulation=False) #########
-            if simulation == False:
-                self.ser_2.write(b'\x54')
-                read_data = self.ser_2.read(2)
-                received_val = int.from_bytes(read_data, byteorder='little')
+            # if simulation == False:
+            #     actual_angle = right_hand.get_angle()
+                # self.ser_2.write(b'\x54')
+                # read_data = self.ser_2.read(2)
+                # received_val = int.from_bytes(read_data, byteorder='little')
         
-                # 将整数转换成二进制，并移除最高两位
-                binary_val = bin(received_val)[2:].zfill(16)  # 将整数转换为16位的二进制字符串
-                truncated_binary = binary_val[2:]  # 移除最高两位
-                actual_angle = int(truncated_binary, 2)
+                # # 将整数转换成二进制，并移除最高两位
+                # binary_val = bin(received_val)[2:].zfill(16)  # 将整数转换为16位的二进制字符串
+                # truncated_binary = binary_val[2:]  # 移除最高两位
+                # actual_angle = int(truncated_binary, 2)
 
-                # 校正
-                if first_count==0:
-                    reset_count = actual_angle
-                    first_count = 1
-                if actual_angle < reset_count:
-                    actual_angle = ((actual_angle-reset_count+16384)/16383*360)+25
-                else:
-                    actual_angle = ((actual_angle-reset_count)/16383*360)+25
-                if actual_angle > 350:
-                    actual_angle = 25
+                # # 校正
+                # if first_count==0:
+                #     reset_count = actual_angle
+                #     first_count = 1
+                # if actual_angle < reset_count:
+                #     actual_angle = ((actual_angle-reset_count+16384)/16383*360)+20
+                # else:
+                #     actual_angle = ((actual_angle-reset_count)/16383*360)+20
+                # if actual_angle > 350:
+                #     actual_angle = 20
 
             ########################################################
             
@@ -311,15 +317,25 @@ class DataReceiveThreads(Ui_MainWindow):
             #
             # controller_u, learning_array, first_period, C = control_system(controller_u,desire_angle,actual_angle,learning_array,Idx,first_period, C, smc_lambda, k_l1, k_l2)
             #
-            error = desire_angle - actual_angle
+            for i in range(3):
+                if i == 0:
+                    error = 0
+                    delta = 0
+                actual_angle = right_hand.get_angle()
+                error = error + desire_angle - actual_angle
+                delta = delta + error -  last_error
+                if i == 2:
+                    error = error/3
+                    delta = delta/3
+
             a.restart_system()
-            output_m,new_u = a.calculate(error,last_delta - error)
-            new_output_gauss_center,new_output_gauss_width,new_error_gauss_center,new_error_gauss_width,new_delta_gauss_center,new_delta_gauss_width = a.output_gauss_learning(error,last_delta - error,0.0000001,0.0000001,0.0000001,output_m)
+            output_m,new_u = a.calculate(error,delta)
+            new_output_gauss_center,new_output_gauss_width,new_error_gauss_center,new_error_gauss_width,new_delta_gauss_center,new_delta_gauss_width = a.output_gauss_learning(error,delta,0.00001,0.00001,0.00001,output_m)
             a.new_output_gauss(new_output_gauss_center,new_output_gauss_width,new_error_gauss_center,new_error_gauss_width,new_delta_gauss_center,new_delta_gauss_width)
-            new_u = new_u * 0.03
+            new_u = new_u * 0.02
             controller_u = controller_u + new_u
-            print('1',new_output_gauss_center,new_output_gauss_width,new_error_gauss_center,new_error_gauss_width,new_delta_gauss_center,new_delta_gauss_width )
-            last_delta = error
+            print(error,delta)
+            last_error = error
             
 
             # 儲存結果

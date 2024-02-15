@@ -53,7 +53,8 @@ class MyMainWindow(QtWidgets. QMainWindow, Ui_MainWindow):
         # 按鍵功能
         self.btnCon.clicked.connect(self.StartConnection)  # 連線
         self.btnDisCon.clicked.connect(self.Disconnection)  # 斷線
-        self.btnSave.clicked.connect(self.ShowData)  # 顯示
+        self.btnCon.clicked.connect(self.ShowData)  # 顯示
+        #self.btnSave.clicked.connect(self.ShowData)  # 顯示
         self.btnSavePic.clicked.connect(self.SavedataPic)  # 存檔
 
         self.ser = None
@@ -218,7 +219,7 @@ class DataReceiveThreads(Ui_MainWindow):
         self.ser_2 = None
 
         self.triangle_angle = [30,31,31,32,32,33,34,34,35,35,36,37,37,38,38,39,40,40,41,41,42,43,43,44,44,45,46,46,47,47,48,49,49,50,51,51,52,52,53,54,54,55,55,56,57,57,58,58,59,60,60,61,61,62,63,63,64,64,65,66,66,67,67,68,69,69,70,70,71,72,72,73,73,74,75,75,76,76,77,78,78,79,79,80,81,81,82,82,83,84,84,85,85,86,87,87,88,88,89,90,90,89,88,88,87,87,86,85,85,84,84,83,82,82,81,81,80,79,79,78,78,77,76,76,75,75,74,73,73,72,72,71,70,70,69,69,68,67,67,66,66,65,64,64,63,63,62,61,61,60,60,59,58,58,57,57,56,55,55,54,54,53,52,52,51,51,50,49,49,48,47,47,46,46,45,44,44,43,43,42,41,41,40,40,39,38,38,37,37,36,35,35,34,34,33,32,32,31,31,30]
-        self.triangle_angle_voltage = [5700,5881,6062,6243,6424,6605,6785,6966,7147,7328,7509,7690,7871,8052,8233,8414,8594,8775,8956,9137,9318,9499,9680,9861,10042,10223,10404,10584,10765,10946,11127,11308,11489,11670,11851,12032,12213,12393,12574,12755,12936,13117,13298,13479,13660,13841,14022,14203,14383,14564,14745,14926,15107,15288,15469,15650,15831,16012,16192,16373,16554,16735,16916,17097,17278,17459,17640,17821,18002,18182,18363,18544,18725,18906,19087,19268,19449,19630,19811,19991,20172,20353,20534,20715,20896,21077,21258,21439,21620,21801,21981,22162,22343,22524,22705,22886,23067,23248,23429,23610,23610,23429,23248,23067,22886,22705,22524,22343,22162,21981,21801,21620,21439,21258,21077,20896,20715,20534,20353,20172,19991,19811,19630,19449,19268,19087,18906,18725,18544,18363,18182,18002,17821,17640,17459,17278,17097,16916,16735,16554,16373,16192,16012,15831,15650,15469,15288,15107,14926,14745,14564,14383,14203,14022,13841,13660,13479,13298,13117,12936,12755,12574,12393,12213,12032,11851,11670,11489,11308,11127,10946,10765,10584,10404,10223,10042,9861,9680,9499,9318,9137,8956,8775,8594,8414,8233,8052,7871,7690,7509,7328,7147,6966,6785,6605,6424,6243,6062,5881,5700]
+        self.triangle_angle_voltage = [3100,3235,3369,3504,3639,3773,3908,4043,4177,4312,4447,4581,4716,4851,4985,5120,5255,5389,5524,5659,5793,5928,6063,6197,6332,6467,6602,6736,6871,7006,7140,7275,7410,7544,7679,7814,7948,8083,8218,8352,8487,8622,8756,8891,9026,9160,9295,9430,9564,9699,9834,9968,10103,10238,10372,10507,10642,10776,10911,11046,11180,11315,11450,11584,11719,11854,11988,12123,12258,12392,12527,12662,12796,12931,13066,13201,13335,13470,13605,13739,13874,14009,14143,14278,14413,14547,14682,14817,14951,15086,15221,15355,15490,15625,15759,15894,16029,16163,16298,16433,16433,16298,16163,16029,15894,15759,15625,15490,15355,15221,15086,14951,14817,14682,14547,14413,14278,14143,14009,13874,13739,13605,13470,13335,13201,13066,12931,12796,12662,12527,12392,12258,12123,11988,11854,11719,11584,11450,11315,11180,11046,10911,10776,10642,10507,10372,10238,10103,9968,9834,9699,9564,9430,9295,9160,9026,8891,8756,8622,8487,8352,8218,8083,7948,7814,7679,7544,7410,7275,7140,7006,6871,6736,6602,6467,6332,6197,6063,5928,5793,5659,5524,5389,5255,5120,4985,4851,4716,4581,4447,4312,4177,4043,3908,3773,3639,3504,3369,3235,3100]
         excel_file = pd.ExcelFile('PMA_angle.xlsx')
         self.df_pma_angle = excel_file.parse('Sheet1', usecols="B:C", header=None,nrows=200)
 
@@ -270,16 +271,16 @@ class DataReceiveThreads(Ui_MainWindow):
         ##############
         fuzzy2 = self_fuzzy_system()
 
+        system_time = 0.0455
 
-        # plt.ion()
-        plotter = RealTimeGaussianPlot()
-        plt.show(block=False)
-        plotter.set_data()
+        # plotter = RealTimeGaussianPlot()
+        # plt.show(block=False)
+        # plotter.set_data()
         total_error = 0
         while True:
 
             # 前 (test/10) 秒不作動
-            if test < 100:
+            if test <4/system_time:
                 Idx = 0
             else:
                 Idx = Idx + 1
@@ -350,33 +351,38 @@ class DataReceiveThreads(Ui_MainWindow):
             # last_error = error
             ######################
                     
-            ########new need
-            actual_angle = right_hand.get_angle()
-            error = desire_angle - actual_angle
-            delta = error -  last_error
-            new_u,c, w = fuzzy2.fuzzy_rule(error, delta)
-            # plotter.set_data(c, w)
-            new_u = new_u * 0.003
-            controller_u = controller_u + new_u
-            last_error = error
-            ##########
-                    
-            # #no control
-            # controller_u_output = self.triangle_angle_voltage[Idx]
+            # ########new need
             # actual_angle = right_hand.get_angle()
             # error = desire_angle - actual_angle
-            # queue_receive_deg.put(actual_angle)
-            # queue_desire_deg.put(desire_angle)
-            # queue_voltage.put(controller_u_output/65535*10)
-            # #
-
-            # 儲存結果 need
+            # delta = error -  last_error
+            # new_u,c, w = fuzzy2.fuzzy_rule(error, delta)
+            # # plotter.set_data(c, w)
+            # new_u = new_u * 0.0028
+            # controller_u = controller_u + new_u
+            # last_error = error
+            # # print(error,delta)
+            # ##########
+                    
+            #no control
+            controller_u_output = self.triangle_angle_voltage[Idx]
+            actual_angle = right_hand.get_angle()
+            error = desire_angle - actual_angle
             queue_receive_deg.put(actual_angle)
             queue_desire_deg.put(desire_angle)
-            queue_voltage.put(controller_u)
-            # 轉成 16 bits 電壓值 need
-            controller_u_output = controller_u/10*65535
-            controller_u_output = int(controller_u_output)
+            queue_voltage.put(controller_u_output/65535*10)
+            #
+
+            # # 儲存結果 need
+            # if test < 3.3/system_time:
+            #     actual_angle = desire_angle
+            #     total_error = 0
+            # int_actual_angle = int(actual_angle)
+            # queue_receive_deg.put(int_actual_angle)
+            # queue_desire_deg.put(desire_angle)
+            # queue_voltage.put(controller_u)
+            # # 轉成 16 bits 電壓值 need
+            # controller_u_output = controller_u/10*65535
+            # controller_u_output = int(controller_u_output)
             
             if simulation == False:
 
@@ -393,6 +399,7 @@ class DataReceiveThreads(Ui_MainWindow):
             self.ser_1.write(controller_u_output.to_bytes(2, byteorder='big'))
 
             if Idx == 199:
+                total_error = (total_error/200)**0.5
                 print(total_error)
                 total_error = 0
             else:
@@ -401,7 +408,7 @@ class DataReceiveThreads(Ui_MainWindow):
             if simulation == True:
                 actual_angle = return_simulation_pma_angle(self.df_pma_angle,controller_u_output,actual_angle)
 
-            time.sleep(0.02) #delay 0.1 sec
+            time.sleep(system_time) #delay 0.1 sec
 
 
 

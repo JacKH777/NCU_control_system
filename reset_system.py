@@ -11,11 +11,11 @@ first_count = 0
 actual_angle = 25
 test = 0
 # while True:
-#     if test < 200:
-#         i=0
+#     # if test < 200:
+#     #     i=0
 #     if i == 200:
 #         i=0
-#     controller_u_output = triangle_angle[0]
+#     controller_u_output = triangle_angle[i]
 #     ser_1.write(controller_u_output.to_bytes(2, byteorder='big'))
 
 #     i = i+1

@@ -218,15 +218,16 @@ class RealTimeGaussianPlot:
 class self_fuzzy_system:
     def __init__(self):
         # membership default
-        self.error_gauss_center = np.asarray([-9, -6, -3, 0, 3, 6, 9])
-        self.delta_gauss_center = np.asarray([-3, -2, -1, 0, 1, 2, 3])
-        self.output_gauss_center = np.asarray([-25, -15, -10, 0, 10, 15, 25])
+        self.error_gauss_center = np.asarray([-6, -4, -2, 0, 2, 4, 6])
+        self.delta_gauss_center = np.asarray([-6, -4, -2, 0, 2, 4, 6])
+        self.output_gauss_center = np.asarray([-10, -6, -2, 0, 2, 6, 10])
 
-        error_width = 1.5
-        delta_width = 0.5
+        error_width = 1
+        delta_width = 1
+        output_width = 2
         self.error_gauss_width = np.asarray([error_width, error_width, error_width, error_width, error_width, error_width, error_width])
         self.delta_gauss_width = np.asarray([delta_width, delta_width, delta_width, delta_width, delta_width, delta_width, delta_width])
-        self.output_gauss_width = np.asarray([5, 5, 5, 5, 5, 5, 5])
+        self.output_gauss_width = np.asarray([output_width, output_width, output_width, output_width, output_width, output_width, output_width])
 
         self.error_gauss_member = np.zeros(7)
         self.delta_gauss_member = np.zeros(7)
@@ -322,11 +323,11 @@ class self_fuzzy_system:
         control_u = np.sum(self.output_gauss_center * self.output_gauss_width * self.output_gauss_member)/np.sum(self.output_gauss_width * self.output_gauss_member)
         return control_u
     
-    def output_gauss_learning(self,error,delta,output_learning_rate = 0,error_learning_rate = 0,delta_learning_rate = 0):
+    def output_gauss_learning(self,error,delta,output_learning_rate = 0.1,error_learning_rate = 0.1,delta_learning_rate = 0.1):
 
         sum_output = np.sum(self.output_gauss_member * self.output_gauss_width)
         new_output_gauss_center = self.output_gauss_center + (output_learning_rate * error * self.output_gauss_width * self.output_gauss_member / sum_output)
-        fun = (self.output_gauss_center*((self.output_gauss_center* sum_output) - np.sum(self.output_gauss_center * self.output_gauss_center)))/(sum_output**2)
+        fun = (self.output_gauss_center*((self.output_gauss_center* sum_output) - np.sum(self.output_gauss_center * self.output_gauss_member*self.output_gauss_width)))/(sum_output**2)
         new_output_gauss_width = self.output_gauss_width + (output_learning_rate * error * self.output_gauss_member  * fun)
 
         # # center

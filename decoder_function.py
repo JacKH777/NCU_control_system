@@ -22,13 +22,13 @@ class decoder():
             self.reset_count = actual_angle
             self.first_count = 1
         if actual_angle < 8192 and self.reset_count > 8192:
-            actual_angle = ((actual_angle-self.reset_count+16383)/16383*360)+29
+            actual_angle = ((actual_angle-self.reset_count+16383)/16383*360)+27
         elif actual_angle > 8192 and self.reset_count > 8192:
-            actual_angle = ((actual_angle-self.reset_count)/16383*360)+29
+            actual_angle = ((actual_angle-self.reset_count)/16383*360)+27
         elif actual_angle < 8192 and self.reset_count < 8192:
-            actual_angle = ((actual_angle-self.reset_count)/16383*360)+29
+            actual_angle = ((actual_angle-self.reset_count)/16383*360)+27
         else:
-            actual_angle = ((actual_angle-self.reset_count-16383)/16383*360)+29
+            actual_angle = ((actual_angle-self.reset_count-16383)/16383*360)+27
         # if actual_angle > 350:
         #     actual_angle = 28
         return actual_angle

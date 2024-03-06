@@ -183,7 +183,7 @@ class fuzzy_system:
         self.error_gauss_width = new_delta_gauss_width
         
 class RealTimeGaussianPlot:
-    def __init__(self, num_lines=7, x_range=(-27, 27), y_range=(0, 1.2), line_colors=None):
+    def __init__(self, num_lines=7, x_range=(-13, 13), y_range=(0, 1.2), line_colors=None):
         self.num_lines = num_lines
         self.x = np.linspace(x_range[0], x_range[1], 400)
         self.fig, self.ax = plt.subplots()
@@ -220,11 +220,11 @@ class self_fuzzy_system:
         # membership default
         self.error_gauss_center = np.asarray([-6, -4, -2, 0, 2, 4, 6])
         self.delta_gauss_center = np.asarray([-6, -4, -2, 0, 2, 4, 6])
-        self.output_gauss_center = np.asarray([-10, -6, -2, 0, 2, 6, 10])
+        self.output_gauss_center = np.asarray([-6, -4, -2, 0, 2, 4, 6])
 
-        error_width = 1
-        delta_width = 1
-        output_width = 2
+        error_width = 0.6
+        delta_width = 0.6
+        output_width = 0.6
         self.error_gauss_width = np.asarray([error_width, error_width, error_width, error_width, error_width, error_width, error_width])
         self.delta_gauss_width = np.asarray([delta_width, delta_width, delta_width, delta_width, delta_width, delta_width, delta_width])
         self.output_gauss_width = np.asarray([output_width, output_width, output_width, output_width, output_width, output_width, output_width])
@@ -243,8 +243,8 @@ class self_fuzzy_system:
     def calcualte_rule_table(self):
         self.error_count = np.zeros(7)
         self.delta_count = np.zeros(7)
-        self.error_gauss_member[self.error_gauss_member<0.1] = 0
-        self.delta_gauss_member[self.delta_gauss_member<0.1] = 0
+        self.error_gauss_member[self.error_gauss_member<0.01] = 0
+        self.delta_gauss_member[self.delta_gauss_member<0.01] = 0
         for i, error_value in enumerate(self.error_gauss_member):
             for j, delta_value in enumerate(self.delta_gauss_member):
                 if error_value < delta_value:
@@ -257,25 +257,28 @@ class self_fuzzy_system:
                     self.delta_count[j] = self.delta_count[j] + 1 
 
     def get_gauss_member(self):
-        self.output_gauss_member[0] = self.rule_table[0, 0]
+        rule_0 = [self.rule_table[0, 0],self.rule_table[0, 1],self.rule_table[1, 0]]
+        self.output_gauss_member[0] = min(np.sum(rule_0), 1)
 
-        rule_1 = [self.rule_table[0, 1],self.rule_table[0, 2],self.rule_table[0, 3],
-                                              self.rule_table[1, 0],self.rule_table[1, 1],self.rule_table[1, 2],
-                                              self.rule_table[2, 0],self.rule_table[2, 1],
-                                              self.rule_table[3, 0]]
-        filtered_rule_1 = [v for v in rule_1 if v != 0]
-        if filtered_rule_1:
-            self.output_gauss_member[1] = np.min(filtered_rule_1)
-        else:
-            self.output_gauss_member[1] = 0
+        rule_1 = [  self.rule_table[0, 2],self.rule_table[0, 3],self.rule_table[0, 4],
+                    self.rule_table[1, 1],self.rule_table[1, 2],self.rule_table[1, 3],
+                    self.rule_table[2, 0],self.rule_table[2, 1],self.rule_table[2, 2],
+                    self.rule_table[3, 0],self.rule_table[3, 1],
+                    self.rule_table[4, 0]]
+        # filtered_rule_1 = [v for v in rule_1 if v != 0]
+        # if filtered_rule_1:
+        #     self.output_gauss_member[1] = np.min(filtered_rule_1)
+        # else:
+        #     self.output_gauss_member[1] = 0
         # self.output_gauss_member[1] = np.min(rule_1)
+        self.output_gauss_member[1] = min(np.sum(rule_1), 1)
 
-        rule_2 = [self.rule_table[0, 4],self.rule_table[0, 5],
-                                              self.rule_table[1, 3],self.rule_table[1, 4],
-                                              self.rule_table[2, 2],self.rule_table[2, 3],
-                                              self.rule_table[3, 1],self.rule_table[3, 2],
-                                              self.rule_table[4, 0],self.rule_table[4, 1],
-                                              self.rule_table[5, 0]]
+        rule_2 = [  self.rule_table[0, 5],
+                    self.rule_table[1, 4],
+                    self.rule_table[2, 3],
+                    self.rule_table[3, 2],
+                    self.rule_table[4, 1],
+                    self.rule_table[5, 0]]
         # filtered_rule_2 = [v for v in rule_2 if v != 0]
         # if filtered_rule_2:
         #     self.output_gauss_member[2] = np.min(filtered_rule_2)
@@ -283,9 +286,13 @@ class self_fuzzy_system:
         #     self.output_gauss_member[2] = 0
         self.output_gauss_member[2] = min(np.sum(rule_2), 1)
 
-        rule_3 = [self.rule_table[0, 6],self.rule_table[1, 5],self.rule_table[2, 4],
-                                              self.rule_table[3, 3],self.rule_table[4, 2],self.rule_table[5, 1],
-                                              self.rule_table[6, 0]]
+        rule_3 = [  self.rule_table[0, 6],
+                    self.rule_table[1, 5],
+                    self.rule_table[2, 4],
+                    self.rule_table[3, 3],
+                    self.rule_table[4, 2],
+                    self.rule_table[5, 1],
+                    self.rule_table[6, 0]]
         # filtered_rule_3 = [v for v in rule_3 if v != 0]
         # if filtered_rule_3:
         #     self.output_gauss_member[3] = np.min(filtered_rule_3)
@@ -293,12 +300,12 @@ class self_fuzzy_system:
         #     self.output_gauss_member[3] = 0
         self.output_gauss_member[3] = min(np.sum(rule_3), 1)
 
-        rule_4 = [self.rule_table[1, 6],
-                                              self.rule_table[2, 5],self.rule_table[2, 6],
-                                              self.rule_table[3, 4],self.rule_table[3, 5],
-                                              self.rule_table[4, 3],self.rule_table[4, 4],
-                                              self.rule_table[5, 2],self.rule_table[5, 3],
-                                              self.rule_table[6, 1],self.rule_table[6, 2]]
+        rule_4 = [  self.rule_table[1, 6],
+                    self.rule_table[2, 5],
+                    self.rule_table[3, 4],
+                    self.rule_table[4, 3],
+                    self.rule_table[5, 2],
+                    self.rule_table[6, 1]]
         # filtered_rule_4 = [v for v in rule_4 if v != 0]
         # if filtered_rule_4:
         #     self.output_gauss_member[4] = np.min(filtered_rule_4)
@@ -306,10 +313,11 @@ class self_fuzzy_system:
         #     self.output_gauss_member[4] = 0
         self.output_gauss_member[4] = min(np.sum(rule_4), 1)
 
-        rule_5 = [self.rule_table[3, 6],
-                                              self.rule_table[4, 6],self.rule_table[4, 5],
-                                              self.rule_table[5, 6],self.rule_table[5, 5],self.rule_table[5, 4],
-                                              self.rule_table[6, 5],self.rule_table[6, 4],self.rule_table[6, 3]]
+        rule_5 = [  self.rule_table[2, 6],
+                    self.rule_table[3, 6],self.rule_table[3, 5],
+                    self.rule_table[4, 6],self.rule_table[4, 5],self.rule_table[4, 4],
+                    self.rule_table[5, 5],self.rule_table[5, 4],self.rule_table[5, 3],
+                    self.rule_table[6, 4],self.rule_table[6, 3],self.rule_table[6, 2]]
         # filtered_rule_5 = [v for v in rule_5 if v != 0]
         # if filtered_rule_5:
         #     self.output_gauss_member[5] = np.min(filtered_rule_5)
@@ -317,14 +325,17 @@ class self_fuzzy_system:
         #     self.output_gauss_member[5] = 0
         self.output_gauss_member[5] = min(np.sum(rule_5), 1)
 
-        self.output_gauss_member[6] = self.rule_table[6, 6]
+        rule_6 = [self.rule_table[6, 5],self.rule_table[5, 6],self.rule_table[6, 6]]
+        self.output_gauss_member[6] = min(np.sum(rule_6), 1)
+
 
     def defuzz_output_gauss(self):
         control_u = np.sum(self.output_gauss_center * self.output_gauss_width * self.output_gauss_member)/np.sum(self.output_gauss_width * self.output_gauss_member)
         return control_u
     
-    def output_gauss_learning(self,error,delta,output_learning_rate = 0.1,error_learning_rate = 0.1,delta_learning_rate = 0.1):
-
+    def output_gauss_learning(self,error,delta,output_learning_rate = 0.0001,error_learning_rate = 0.0001,delta_learning_rate = 0.0001):
+        
+        # epsilon = 1e-10  # 避免除以零
         sum_output = np.sum(self.output_gauss_member * self.output_gauss_width)
         new_output_gauss_center = self.output_gauss_center + (output_learning_rate * error * self.output_gauss_width * self.output_gauss_member / sum_output)
         fun = (self.output_gauss_center*((self.output_gauss_center* sum_output) - np.sum(self.output_gauss_center * self.output_gauss_member*self.output_gauss_width)))/(sum_output**2)
@@ -335,11 +346,11 @@ class self_fuzzy_system:
         # error_used = np.where(smaller, 1, 0)
         # delta_used = 1-error_used
 
-        new_error_gauss_center = self.error_gauss_center - (((error_learning_rate*2*(error - self.error_gauss_center))/(self.error_gauss_width**2))*(-error*self.output_gauss_width*fun*self.error_count))
-        new_error_gauss_width = self.error_gauss_width - (error_learning_rate*2*((error - self.error_gauss_center)**2)/(self.error_gauss_width**3)*(-error*self.output_gauss_width*fun*self.error_count))
+        new_error_gauss_center = self.error_gauss_center - (((error_learning_rate*2*(error - self.error_gauss_center))/(self.error_gauss_width**2))*((-error)*self.output_gauss_width*fun*self.error_count))
+        new_error_gauss_width = self.error_gauss_width - (error_learning_rate*2*((error - self.error_gauss_center)**2)/(self.error_gauss_width**3)*((-error)*self.output_gauss_width*fun*self.error_count))
 
-        new_delta_gauss_center = self.delta_gauss_center - (((delta_learning_rate*2*(delta - self.delta_gauss_center))/(self.delta_gauss_width**2))*(-error*self.output_gauss_width*fun*self.delta_count))
-        new_delta_gauss_width = self.delta_gauss_width - (delta_learning_rate*2*((delta - self.delta_gauss_center)**2)/(self.delta_gauss_width**3)*(-error*self.output_gauss_width*fun*self.delta_count))
+        new_delta_gauss_center = self.delta_gauss_center - (((delta_learning_rate*2*(delta - self.delta_gauss_center))/(self.delta_gauss_width**2))*((-error)*self.output_gauss_width*fun*self.delta_count))
+        new_delta_gauss_width = self.delta_gauss_width - (delta_learning_rate*2*((delta - self.delta_gauss_center)**2)/(self.delta_gauss_width**3)*((-error)*self.output_gauss_width*fun*self.delta_count))
         
         # 更新
         self.output_gauss_center = new_output_gauss_center
@@ -349,7 +360,7 @@ class self_fuzzy_system:
         self.delta_gauss_center = new_delta_gauss_center
         self.delta_gauss_width = new_delta_gauss_width
 
-    def fuzzy_rule(self,error,delta):
+    def fuzzy_rule(self,error,delta): 
         if error < self.error_gauss_center[0]:
             error = self.error_gauss_center[0]
         elif error >self.error_gauss_center[6]:
@@ -363,7 +374,6 @@ class self_fuzzy_system:
         self.calcualte_rule_table()
         self.get_gauss_member()
         u = self.defuzz_output_gauss()
-        self.output_gauss_learning(error,delta,10**-11,10**-11,10**-11)
         return u,self.error_gauss_center,self.error_gauss_width
 
 

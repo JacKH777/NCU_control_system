@@ -21,8 +21,8 @@ class ANFIS:
         initial_learning_rate = 0.005
         lr_schedule = tf.keras.optimizers.schedules.ExponentialDecay(
             initial_learning_rate=initial_learning_rate,
-            decay_steps= 50,
-            decay_rate=0.6,
+            decay_steps= 100,
+            decay_rate=0.9,
             staircase=True)
         # self.optimizer = tf.optimizers.Adam(learning_rate = lr_schedule) # Optimization step
         self.optimizer = tf.optimizers.RMSprop(learning_rate=lr_schedule, rho=0.9)

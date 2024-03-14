@@ -232,11 +232,13 @@ class DataReceiveThreads(Ui_MainWindow):
         excel_file = pd.ExcelFile('PMA_angle.xlsx')
         self.df_pma_angle = excel_file.parse('Sheet1', usecols="B:C", header=None,nrows=200)
         x = np.linspace(0, 1, 200)
-        self.y_10 = self.triangle_angle_filiter
-        f = interpolate.interp1d(x, self.y_10)
-        self.x_8 = np.linspace(0, 1, 160)
-        self.x_6 = np.linspace(0, 1, 120)
+        self.y = self.triangle_angle_filiter
+        f = interpolate.interp1d(x, self.y)
+        self.x_10 = np.linspace(0, 1, 160)
+        self.x_8 = np.linspace(0, 1, 120)
+        self.x_6 = np.linspace(0, 1, 100)
         self.x_4 = np.linspace(0, 1, 80)
+        self.y_10 = f(self.x_10)
         self.y_8 = f(self.x_8)
         self.y_6 = f(self.x_6)
         self.y_4 = f(self.x_4)
@@ -298,7 +300,7 @@ class DataReceiveThreads(Ui_MainWindow):
 
         ku = 0.01
         total_duration = 0.05 
-        target_trag = self.y_10
+        target_trag = self.y_4
 
         # plotter = RealTimeGaussianPlot()
         # plt.show(block=False)

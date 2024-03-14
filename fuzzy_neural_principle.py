@@ -333,7 +333,7 @@ class self_fuzzy_system:
         control_u = np.sum(self.output_gauss_center * self.output_gauss_width * self.output_gauss_member)/np.sum(self.output_gauss_width * self.output_gauss_member)
         return control_u
     
-    def output_gauss_learning(self,error,delta,output_learning_rate = 0.0001,error_learning_rate = 0.0001,delta_learning_rate = 0.0001):
+    def output_gauss_learning(self,error,delta,output_learning_rate = 0.01,error_learning_rate = 0.01,delta_learning_rate = 0.01):
         
         # epsilon = 1e-10  # 避免除以零
         sum_output = np.sum(self.output_gauss_member * self.output_gauss_width)

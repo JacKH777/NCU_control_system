@@ -6,7 +6,7 @@ mu_error = np.array([-5, -3, -1, 0, 1, 3, 5])
 sigma_error = np.array([1.5, 1, 1, 1, 1, 1, 1.5])
 
 # 创建一个范围内的error值
-error_range = np.linspace(-15, 15, 300)
+error_range = np.linspace(-10, 10, 300)
 
 # 定义自定义Sigmoid函数
 def custom_sigmoid(x, mu,sigma_error):
@@ -25,12 +25,12 @@ rul_errors = np.array([gaussian(error_range, mu, sigma) for mu, sigma in zip(mu_
 
 # 绘制隶属函数
 plt.figure(figsize=(10, 6))
-plt.plot(error_range, error_first, label='First Rule (Sigmoid)')
+plt.plot(error_range, error_first, label='First Rule')
 for i, rul_error in enumerate(rul_errors, start=2):
     plt.plot(error_range, rul_error, label=f'Rule {i}')
-plt.plot(error_range, error_last, label='Last Rule (Sigmoid)')
+plt.plot(error_range, error_last, label='Last Rule')
 plt.title('Membership Functions')
-plt.xlabel('Error')
+plt.xlabel('e / é')
 plt.ylabel('Membership Value')
 plt.legend()
 plt.grid(True)

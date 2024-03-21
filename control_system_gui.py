@@ -17,7 +17,7 @@ import matplotlib as mpl
 
 plt.style.use('ggplot')
 
-COLOR = 'gray'
+COLOR = 'black'
 mpl.rcParams['text.color'] = COLOR
 # mpl.rcParams['axes.labelcolor'] = COLOR
 mpl.rcParams['xtick.color'] = COLOR
@@ -28,14 +28,14 @@ class MplCanvas(FigureCanvas):
     def __init__(self, parent=None):
         color = 'steelblue'
         linewidth = 0.8
-        time_span = 500
+        time_span = 300
 
         fig = plt.figure()
         gs = fig.add_gridspec(5, hspace=0.1)
-        self.axs = gs.subplots(sharex=False, sharey=False)
+        self.axs = gs.subplots(sharex=True, sharey=False)
 
-        channel_list = ['Voltage\n(V)', 'Desired Position\n(deg)', 'Actual Position\n(deg)', 'Comparison\n(deg)', 'Error\n(deg)']
-        colors = ['#ff7e26', '#b65e38', '#62856d', '#484c4d', '#073d51', '#45818e']
+        channel_list = ['Voltage\n(V)', 'Desired Position\n(degree)', 'Actual Position\n(degree)', 'Comparison\n(degree)', 'Error\n(degree)']
+        colors = ['#000000', '#000000', '#0000ff', '#000000', '#0000ff']
         xticks = [x for x in range(0, time_span + 1, 50)]
         xticklabels = [str((time/10)) for time in range(0,  time_span + 1, 50)]        
         
@@ -47,11 +47,11 @@ class MplCanvas(FigureCanvas):
                 if i == 0 :
                         # set x, y lim
                         self.axs[i].set_xlim(0, time_span)    
-                        self.axs[i].set_ylim(-0.1, 10)
+                        self.axs[i].set_ylim(0.01, 1.5)
                 elif i in [1, 2, 3]:
                         # set x, y lim
                         self.axs[i].set_xlim(0, time_span)    
-                        self.axs[i].set_ylim(10, 110)   
+                        self.axs[i].set_ylim(25, 50)   
                 else :                               
                         # set x, y lim
                         self.axs[i].set_xlim(0, time_span)    
@@ -70,11 +70,23 @@ class MplCanvas(FigureCanvas):
 
                 # # set grid 
                 # self.axs[i].set_yticks([-4e-5, 0, 4e-5], minor=True)
-                self.axs[i].grid(axis='y') # 设置 y 就在轴方向显示网格线
+                # self.axs[i].grid(axis='y') # 设置 y 就在轴方向显示网格线
                 self.axs[i].grid(which="minor",alpha=0.3)
+                self.axs[i].set_facecolor('white')
+                for spine in self.axs[i].spines.values():
+                        spine.set_visible(True)  # 确保边框是可见的
+                        spine.set_color('black')  # 设置边框颜色为黑色
+                        spine.set_linewidth(0.8)  # 设置边框线条的宽度
 
-        line2, = self.axs[3].plot([], [], c=colors[5], lw=linewidth)
+
+        line2, = self.axs[3].plot([], [], c=colors[2], lw=linewidth)
         self.lines.append(line2)
+
+        line3, = self.axs[3].plot([], [], c='#D00A07', lw=linewidth, linestyle='--',alpha=0.7)
+        self.lines.append(line3)
+
+        line4, = self.axs[4].plot([], [], c='#D00A07', lw=linewidth, linestyle='--',alpha=0.7)
+        self.lines.append(line4)
 
         # Hide x labels and tick labels for top plots and y ticks for right plots.
         for ax in self.axs:

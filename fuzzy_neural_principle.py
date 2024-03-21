@@ -11,9 +11,9 @@ import time
 class fuzzy_system:
     def __init__(self):
         # fuzzy rule
-        self.error_gauss_center = [-15, -10, -5, 0, 5, 10, 15]
-        self.delta_gauss_center = [-15, -10, -5, 0, 7, 10, 15]
-        self.output_gauss_center = [-15, -10, -5, 0, 7, 10, 15]
+        self.error_gauss_center = [-5, -3, -1, 0, 1, 3, 5]
+        self.delta_gauss_center = [-5, -3, -1, 0, 1, 3, 5]
+        self.output_gauss_center = [-5, -3, -1, 0, 1, 3, 5]
 
         self.error_gauss_width = [5, 5, 5, 5, 5, 5, 5]
         self.delta_gauss_width = [5, 5, 5, 5, 5, 5, 5]

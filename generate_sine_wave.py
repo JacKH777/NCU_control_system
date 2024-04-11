@@ -4,7 +4,7 @@ import numpy as np
 amplitude = 32  # 振幅
 offset = 62     # 位移，使得波形的最小值為0
 frequency = 1   # 頻率（週期數）
-num_points = 200    # 點的數量
+num_points = 500    # 點的數量
 
 # 產生0到2π之間的等間隔數值（num_points個點）
 x = np.linspace(0, 2 * np.pi, num_points)

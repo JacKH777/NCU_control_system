@@ -218,17 +218,20 @@ class RealTimeGaussianPlot:
 class self_fuzzy_system:
     def __init__(self):
         # membership default
-        self.error_gauss_center = np.asarray([-6, -4, -2, 0, 2, 4, 6])
-        self.delta_gauss_center = np.asarray([-6, -4, -2, 0, 2, 4, 6])
-        self.output_gauss_center = np.asarray([-6, -4, -2, 0, 2, 4, 6])
+        self.error_gauss_center = np.asarray([-5, -3, -1, 0, 1, 3, 5])
+        self.delta_gauss_center = np.asarray([-5, -3, -1, 0, 1, 3, 5])
+        self.output_gauss_center = np.asarray([-10, -5, -3, 0, 3, 5, 10])
 
         error_width = 0.6
         delta_width = 0.6
         output_width = 0.6
-        self.error_gauss_width = np.asarray([error_width, error_width, error_width, error_width, error_width, error_width, error_width])
-        self.delta_gauss_width = np.asarray([delta_width, delta_width, delta_width, delta_width, delta_width, delta_width, delta_width])
-        self.output_gauss_width = np.asarray([output_width, output_width, output_width, output_width, output_width, output_width, output_width])
-
+        # self.error_gauss_width = np.asarray([error_width, error_width, error_width, error_width, error_width, error_width, error_width])
+        # self.delta_gauss_width = np.asarray([delta_width, delta_width, delta_width, delta_width, delta_width, delta_width, delta_width])
+        # self.output_gauss_width = np.asarray([output_width, output_width, output_width, output_width, output_width, output_width, output_width])
+        
+        self.error_gauss_width = np.asarray([1.5, 1, 1, 1, 1, 1, 1.5])
+        self.delta_gauss_width = np.asarray([1.5, 1, 1, 1, 1, 1, 1.5])
+        self.output_gauss_width = np.asarray([1.5, 1, 1, 1, 1, 1, 1.5])
         self.error_gauss_member = np.zeros(7)
         self.delta_gauss_member = np.zeros(7)
         self.output_gauss_member = np.zeros(7)
@@ -255,6 +258,7 @@ class self_fuzzy_system:
                 else:
                     self.rule_table[i, j] = delta_value
                     self.delta_count[j] = self.delta_count[j] + 1 
+ 
 
     def get_gauss_member(self):
         rule_0 = [self.rule_table[0, 0],self.rule_table[0, 1],self.rule_table[1, 0]]
@@ -329,36 +333,44 @@ class self_fuzzy_system:
         self.output_gauss_member[6] = min(np.sum(rule_6), 1)
 
 
-    def defuzz_output_gauss(self):
+    def defuzz_output_gauss(self,error):
+        # if np.all(self.output_gauss_member == 0) and error>0:
+        #     self.output_gauss_member[6]=1
+        #     self.output_gauss_member[5]=1
+        # elif np.all(self.output_gauss_member == 0) and error<0:
+        #     self.output_gauss_member[0]=1
+        #     self.output_gauss_member[1]=1
+        # print('error:',self.error_gauss_member)
+        # print('rror:',self.output_gauss_member)
         control_u = np.sum(self.output_gauss_center * self.output_gauss_width * self.output_gauss_member)/np.sum(self.output_gauss_width * self.output_gauss_member)
         return control_u
     
-    def output_gauss_learning(self,error,delta,output_learning_rate = 0.01,error_learning_rate = 0.01,delta_learning_rate = 0.01):
+    # def output_gauss_learning(self,error,delta,output_learning_rate = 0,error_learning_rate = 0,delta_learning_rate = 0):
         
-        # epsilon = 1e-10  # 避免除以零
-        sum_output = np.sum(self.output_gauss_member * self.output_gauss_width)
-        new_output_gauss_center = self.output_gauss_center + (output_learning_rate * error * self.output_gauss_width * self.output_gauss_member / sum_output)
-        fun = (self.output_gauss_center*((self.output_gauss_center* sum_output) - np.sum(self.output_gauss_center * self.output_gauss_member*self.output_gauss_width)))/(sum_output**2)
-        new_output_gauss_width = self.output_gauss_width + (output_learning_rate * error * self.output_gauss_member  * fun)
+    #     # epsilon = 1e-10  # 避免除以零
+    #     sum_output = np.sum(self.output_gauss_member * self.output_gauss_width)
+    #     new_output_gauss_center = self.output_gauss_center + (output_learning_rate * error * self.output_gauss_width * self.output_gauss_member / sum_output)
+    #     fun = (self.output_gauss_center*((self.output_gauss_center* sum_output) - np.sum(self.output_gauss_center * self.output_gauss_member*self.output_gauss_width)))/(sum_output**2)
+    #     new_output_gauss_width = self.output_gauss_width + (output_learning_rate * error * self.output_gauss_member  * fun)
 
-        # # center
-        # smaller = np.less(self.error_gauss_member, self.delta_gauss_member)  # 或者使用 arr1 < arr2
-        # error_used = np.where(smaller, 1, 0)
-        # delta_used = 1-error_used
+    #     # # center
+    #     # smaller = np.less(self.error_gauss_member, self.delta_gauss_member)  # 或者使用 arr1 < arr2
+    #     # error_used = np.where(smaller, 1, 0)
+    #     # delta_used = 1-error_used
 
-        new_error_gauss_center = self.error_gauss_center - (((error_learning_rate*2*(error - self.error_gauss_center))/(self.error_gauss_width**2))*((-error)*self.output_gauss_width*fun*self.error_count))
-        new_error_gauss_width = self.error_gauss_width - (error_learning_rate*2*((error - self.error_gauss_center)**2)/(self.error_gauss_width**3)*((-error)*self.output_gauss_width*fun*self.error_count))
+    #     new_error_gauss_center = self.error_gauss_center - (((error_learning_rate*2*(error - self.error_gauss_center))/(self.error_gauss_width**2))*((-error)*self.output_gauss_width*fun*self.error_count))
+    #     new_error_gauss_width = self.error_gauss_width - (error_learning_rate*2*((error - self.error_gauss_center)**2)/(self.error_gauss_width**3)*((-error)*self.output_gauss_width*fun*self.error_count))
 
-        new_delta_gauss_center = self.delta_gauss_center - (((delta_learning_rate*2*(delta - self.delta_gauss_center))/(self.delta_gauss_width**2))*((-error)*self.output_gauss_width*fun*self.delta_count))
-        new_delta_gauss_width = self.delta_gauss_width - (delta_learning_rate*2*((delta - self.delta_gauss_center)**2)/(self.delta_gauss_width**3)*((-error)*self.output_gauss_width*fun*self.delta_count))
+    #     new_delta_gauss_center = self.delta_gauss_center - (((delta_learning_rate*2*(delta - self.delta_gauss_center))/(self.delta_gauss_width**2))*((-error)*self.output_gauss_width*fun*self.delta_count))
+    #     new_delta_gauss_width = self.delta_gauss_width - (delta_learning_rate*2*((delta - self.delta_gauss_center)**2)/(self.delta_gauss_width**3)*((-error)*self.output_gauss_width*fun*self.delta_count))
         
-        # 更新
-        self.output_gauss_center = new_output_gauss_center
-        self.output_gauss_width = new_output_gauss_width
-        self.error_gauss_center = new_error_gauss_center
-        self.error_gauss_width = new_error_gauss_width
-        self.delta_gauss_center = new_delta_gauss_center
-        self.delta_gauss_width = new_delta_gauss_width
+    #     # 更新
+    #     self.output_gauss_center = new_output_gauss_center
+    #     self.output_gauss_width = new_output_gauss_width
+    #     self.error_gauss_center = new_error_gauss_center
+    #     self.error_gauss_width = new_error_gauss_width
+    #     self.delta_gauss_center = new_delta_gauss_center
+    #     self.delta_gauss_width = new_delta_gauss_width
 
     def fuzzy_rule(self,error,delta): 
         if error < self.error_gauss_center[0]:
@@ -371,9 +383,13 @@ class self_fuzzy_system:
             delta = self.delta_gauss_center[6]
         self.error_gauss_member = self.vectorized_gaussian(error, self.error_gauss_center, self.error_gauss_width)
         self.delta_gauss_member = self.vectorized_gaussian(delta, self.delta_gauss_center, self.delta_gauss_width)
+        # self.error_gauss_member[0] =  1 / (1 + np.exp(self.error_gauss_width[0]*(error - self.error_gauss_center[0])))
+        # self.delta_gauss_member[0] =  1 / (1 + np.exp(self.delta_gauss_width[0]*(delta - self.delta_gauss_center[0])))
+        # self.error_gauss_member[6] =  1 / (1 + np.exp(self.error_gauss_width[6]*(error - self.error_gauss_center[6])))
+        # self.delta_gauss_member[6] =  1 / (1 + np.exp(self.delta_gauss_width[6]*(delta - self.delta_gauss_center[6])))
         self.calcualte_rule_table()
         self.get_gauss_member()
-        u = self.defuzz_output_gauss()
+        u = self.defuzz_output_gauss(error)
         return u,self.error_gauss_center,self.error_gauss_width
 
 

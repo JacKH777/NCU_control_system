@@ -21,14 +21,14 @@ class ANFIS:
         initial_learning_rate = 0.016
         lr_schedule = tf.keras.optimizers.schedules.ExponentialDecay(
             initial_learning_rate=initial_learning_rate,
-            decay_steps=80,
+            decay_steps=100,
             decay_rate=0,
             staircase=True)
-        # self.optimizer = tf.optimizers.Adam(learning_rate = lr_schedule) # Optimization step
-        self.optimizer = tf.optimizers.RMSprop(learning_rate=lr_schedule, rho=0.8)
-        # self.optimizer = tf.optimizers.Adadelta(learning_rate=1, rho=0.9)
-        # self.optimizer = tf.optimizers.AdamW(learning_rate=lr_schedule, weight_decay=0.01)
-    
+        # # self.optimizer = tf.optimizers.Adam(learning_rate = lr_schedule) # Optimization step
+        # self.optimizer = tf.optimizers.RMSprop(learning_rate=lr_schedule, rho=0.8)
+        # # self.optimizer = tf.optimizers.Adadelta(learning_rate=1, rho=0.9)
+        # # self.optimizer = tf.optimizers.AdamW(learning_rate=lr_schedule, weight_decay=0.01)
+        self.optimizer = tf.optimizers.Adam(learning_rate = 0) 
 
     def train(self, error,delta, targets, actual_angle):
         with tf.GradientTape() as tape:

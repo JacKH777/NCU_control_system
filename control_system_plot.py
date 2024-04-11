@@ -333,6 +333,7 @@ class DataReceiveThreads(Ui_MainWindow):
         # plt.show(block=False)
         # plotter.set_data()
         total_error = 0
+        cycle_max_error = 0
 
         first_period_detail = np.asarray([])
 
@@ -447,18 +448,22 @@ class DataReceiveThreads(Ui_MainWindow):
             
             self.ser_1.write(controller_u_output.to_bytes(2, byteorder='big'))
 
-
             if Idx == len(target_trag)-1:
                 total_error = (total_error/200)**0.5
-                print(total_error)
+                print("total_error : ",total_error)
+                print("cycle_max_error : ",cycle_max_error)
                 # if total_error <= last_total_error:
                 #     last_mu_error, last_sigma_error,last_mu_delta, last_sigma_delta, last_y = mu_error, sigma_error, mu_delta, sigma_delta, y
                 #     last_total_error = total_error
                 # else:
                 #     early_stop = 1
                 total_error = 0
+                cycle_max_error = 0
+
             else:
                 total_error = total_error+(error**2)
+                if cycle_max_error < error:
+                    cycle_max_error = error
 
             if simulation == True:
                 actual_angle = return_simulation_pma_angle(self.df_pma_angle,controller_u_output,actual_angle)

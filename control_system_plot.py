@@ -153,38 +153,38 @@ class MyMainWindow(QtWidgets. QMainWindow, Ui_MainWindow):
             self.desire_deg_array = np.append(self.desire_deg_array, desire_deg)
         #
             
-        #
-        while not self.queue_first_period.empty():
-            temp = self.queue_first_period.get() 
-            del temp
-        if len(self.first_period) >= 500: 
-            self.first_period = self.first_period[-1:]
-        else:
-            self.first_period = np.append(self.first_period, first_period)
-        #
+        # #
+        # while not self.queue_first_period.empty():
+        #     temp = self.queue_first_period.get() 
+        #     del temp
+        # if len(self.first_period) >= 500: 
+        #     self.first_period = self.first_period[-1:]
+        # else:
+        #     self.first_period = np.append(self.first_period, first_period)
+        # #
 
         ydata = self.raw_total      
         xdata = np.arange(ydata.shape[0])
         self.canvas.lines[0].set_data(xdata, ydata)
 
-        y_data_1 = self.desire_deg_array     
-        x_data_1 = np.arange(y_data_1.shape[0])
-        self.canvas.lines[1].set_data(x_data_1, y_data_1)
+        # y_data_1 = self.desire_deg_array     
+        # x_data_1 = np.arange(y_data_1.shape[0])
+        # self.canvas.lines[1].set_data(x_data_1, y_data_1)
 
         ydat = self.raw_total_deg     
         xdat = np.arange(ydat.shape[0])
         self.canvas.lines[2].set_data(xdat, ydat)
 
-        self.canvas.lines[3].set_data(x_data_1, y_data_1)
+        # self.canvas.lines[3].set_data(x_data_1, y_data_1)
         self.canvas.lines[5].set_data(xdat, ydat)
 
-        self.canvas.lines[4].set_data(xdat, y_data_1 - ydat)
+        # self.canvas.lines[4].set_data(xdat, y_data_1 - ydat)
 
         first_y = self.first_period
         first_x = np.arange(first_y.shape[0])
 
         self.canvas.lines[6].set_data(first_x,first_y)
-        self.canvas.lines[7].set_data(first_x,y_data_1 - first_y)
+        # self.canvas.lines[7].set_data(first_x,y_data_1 - first_y)
 
         self.canvas.draw()
 
@@ -267,7 +267,7 @@ class DataReceiveThreads(Ui_MainWindow):
         self.y_4 = f(self.x_4)
     
 
-    def data_recv(self, queue_comport, queue_voltage, queue_gui_message,queue_receive_deg, queue_desire_deg, queue_control_value,queue_first_period):
+    def data_recv(self, queue_comport, queue_voltage, queue_gui_message,queue_receive_deg, queue_desire_deg, queue_control_value):
 
         while True:            
             if not queue_comport.empty():
@@ -371,10 +371,10 @@ class DataReceiveThreads(Ui_MainWindow):
             error = desire_angle - actual_angle
             delta = (error -  last_error)
             if Idx < len(target_trag)/2 and test > 4/total_duration:
-                new_u, mu_error, sigma_error, mu_delta, sigma_delta, y= fis.train([error],[delta], [desire_angle],[actual_angle])
+                new_u = fis.train([error],[delta], [desire_angle],[actual_angle])
 
             elif Idx >= len(target_trag)/2 and test > 4/total_duration:
-                new_u, mu_error, sigma_error, mu_delta, sigma_delta, y= down.train([error],[delta], [desire_angle],[actual_angle])
+                new_u = down.train([error],[delta], [desire_angle],[actual_angle])
             else:
                 new_u= fis.predict([error],[delta])
             # if Idx < len(target_trag)/2 and test > 4/total_duration:
@@ -397,18 +397,18 @@ class DataReceiveThreads(Ui_MainWindow):
             # print(c,w)
             ##########
 
-            ##儲存第一次結果
-            if  first_period == True and  test >= 4/total_duration -1:
-                first_period_detail = np.append(first_period_detail,actual_angle)
-                if Idx == len(target_trag)-1:
-                    first_period = False
-            if first_period == False and first_period_cycle == True:
-                if actual_angle <= first_period_detail[-1]:
-                    first_period_detail = np.append(first_period_detail,actual_angle)
-                    first_period_detail = first_period_detail[1:]
-                else:
-                    first_period_cycle = False
-            ##
+            # ##儲存第一次結果
+            # if  first_period == True and  test >= 4/total_duration -1:
+            #     first_period_detail = np.append(first_period_detail,actual_angle)
+            #     if Idx == len(target_trag)-1:
+            #         first_period = False
+            # if first_period == False and first_period_cycle == True:
+            #     if actual_angle <= first_period_detail[-1]:
+            #         first_period_detail = np.append(first_period_detail,actual_angle)
+            #         first_period_detail = first_period_detail[1:]
+            #     else:
+            #         first_period_cycle = False
+            # ##
 
             # 儲存結果 need
             # if test < 4/total_duration:
@@ -419,15 +419,15 @@ class DataReceiveThreads(Ui_MainWindow):
                 queue_receive_deg.put(int_actual_angle)
                 queue_desire_deg.put(desire_angle)
                 queue_voltage.put(controller_u)
-                if test < 4/total_duration -1:
-                    queue_first_period.put(actual_angle)
-                elif  first_period_cycle == True:
-                    queue_first_period.put(first_period_detail[-1])
-                else:
-                    queue_first_period.put(first_period_detail[first_period_idx])
-                    first_period_idx = first_period_idx + 1
-                    if first_period_idx == len(target_trag):
-                        first_period_idx = 0
+                # if test < 4/total_duration -1:
+                #     queue_first_period.put(actual_angle)
+                # elif  first_period_cycle == True:
+                #     queue_first_period.put(first_period_detail[-1])
+                # else:
+                #     queue_first_period.put(first_period_detail[first_period_idx])
+                #     first_period_idx = first_period_idx + 1
+                #     if first_period_idx == len(target_trag):
+                #         first_period_idx = 0
             # 轉成 16 bits 電壓值 need
             controller_u = float(controller_u)
             controller_u_output = controller_u/10*65535

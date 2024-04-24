@@ -104,7 +104,11 @@ class ANFIS:
             self.out = 0
         gradients = tape.gradient(loss, self.trainable_variables)
         self.optimizer.apply_gradients(zip(gradients, self.trainable_variables))
-        return tf.squeeze(self.u), self.mu_error, self.sigma_error, self.mu_delta, self.sigma_delta, self.y
+        return tf.squeeze(self.u)
+
+    def save_model(self):
+        all_data = np.column_stack((self.mu_error.numpy(), self.sigma_error.numpy(), self.mu_delta.numpy(), self.sigma_delta.numpy(), self.y.numpy(), self.y_sigma.numpy()))
+        np.savetxt('model.txt', all_data, delimiter=',', fmt='%f')
 
     def predict(self, error, delta,):
         self.error = tf.convert_to_tensor( error, dtype=tf.float32)

@@ -10,6 +10,7 @@ i = 0
 first_count = 0
 actual_angle = 25
 test = 0
+controller_u_output = int(0/10*65535)
 # while True:
 #     # if test < 200:
 #     #     i=0

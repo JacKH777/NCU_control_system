@@ -82,11 +82,11 @@ class MplCanvas(FigureCanvas):
         line2, = self.axs[3].plot([], [], c=colors[2], lw=linewidth)
         self.lines.append(line2)
 
-        line3, = self.axs[3].plot([], [], c='#D00A07', lw=linewidth, linestyle='--',alpha=0.7)
-        self.lines.append(line3)
+        # line3, = self.axs[3].plot([], [], c='#D00A07', lw=linewidth, linestyle='--',alpha=0.7)
+        # self.lines.append(line3)
 
-        line4, = self.axs[4].plot([], [], c='#D00A07', lw=linewidth, linestyle='--',alpha=0.7)
-        self.lines.append(line4)
+        # line4, = self.axs[4].plot([], [], c='#D00A07', lw=linewidth, linestyle='--',alpha=0.7)
+        # self.lines.append(line4)
 
         # Hide x labels and tick labels for top plots and y ticks for right plots.
         for ax in self.axs:

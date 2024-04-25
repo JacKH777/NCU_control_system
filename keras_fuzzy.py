@@ -19,17 +19,17 @@ class ANFIS:
 
 
         # initial_learning_rate = 0.016
-        # lr_schedule = tf.keras.optimizers.schedules.ExponentialDecay(
+        # self.lr_schedule = tf.keras.optimizers.schedules.ExponentialDecay(
         #     initial_learning_rate=initial_learning_rate,
         #     decay_steps=100,
         #     decay_rate=0,
         #     staircase=True)
         # self.optimizer = tf.optimizers.Adam(learning_rate = learning_rate) # Optimization step
-        # self.optimizer = tf.optimizers.RMSprop(learning_rate=0.01,rho=0,momentum=0.2)
+        # self.optimizer = tf.optimizers.RMSprop(learning_rate=0.01)
         # self.optimizer = tf.optimizers.Adadelta(learning_rate=1, rho=0.9)
         # # self.optimizer = tf.optimizers.AdamW(learning_rate=lr_schedule, weight_decay=0.01)
         # self.optimizer = tf.optimizers.Adam(learning_rate = 0) 
-        self.optimizer = tf.keras.optimizers.SGD(learning_rate=0.1,momentum=0.9)
+        self.optimizer = tf.keras.optimizers.SGD(learning_rate=0.4)
         # self.optimizer = tf.optimizers.Adagrad(learning_rate=0.01)
 
 
@@ -117,9 +117,15 @@ class ANFIS:
         self.optimizer.apply_gradients(zip(gradients, self.trainable_variables))
         return tf.squeeze(self.u)
 
-    def save_model(self):
+    def change_learning_rate(self,value):
+        # print('before:',self.optimizer.learning_rate.numpy())
+        self.optimizer.learning_rate = value
+        # print('after:',self.optimizer.learning_rate.numpy())
+
+    def save_model(self,name):
+        name = name + '.txt'
         all_data = np.column_stack((self.mu_error.numpy(), self.sigma_error.numpy(), self.mu_delta.numpy(), self.sigma_delta.numpy(), self.y.numpy(), self.y_sigma.numpy()))
-        np.savetxt('model.txt', all_data, delimiter=',', fmt='%f')
+        np.savetxt(name, all_data, delimiter=',', fmt='%f')
 
     def predict(self, error, delta,):
         self.error = tf.convert_to_tensor( error, dtype=tf.float64)
@@ -185,12 +191,12 @@ class ANFIS:
         all_data_loaded = np.loadtxt(path, delimiter=',')
     
         # 分列存储到各个变量中，假设我们知道有六列
-        self.mu_error = all_data_loaded[:, 0]
-        self.sigma_error = all_data_loaded[:, 1]
-        self.mu_delta = all_data_loaded[:, 2]
-        self.sigma_delta = all_data_loaded[:, 3]
-        self.y = all_data_loaded[:, 4]
-        self.y_sigma = all_data_loaded[:, 5]
+        self.mu_error.assign(all_data_loaded[:, 0])
+        self.sigma_error.assign(all_data_loaded[:, 1])
+        self.mu_delta.assign(all_data_loaded[:, 2])
+        self.sigma_delta.assign(all_data_loaded[:, 3])
+        self.y.assign(all_data_loaded[:, 4])
+        self.y_sigma.assign(all_data_loaded[:, 5])
 
 class ori_ANFIS:
 

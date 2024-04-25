@@ -256,7 +256,7 @@ class DataReceiveThreads(Ui_MainWindow):
         self.y = self.sine_angle
         #
         f = interpolate.interp1d(x, self.y)
-        self.x_10 = np.linspace(0, 1, 160)
+        self.x_10 = np.linspace(0, 1, 180)
         self.x_8 = np.linspace(0, 1, 120)
         self.x_6 = np.linspace(0, 1, 100)
         self.x_4 = np.linspace(0, 1, 80)
@@ -288,7 +288,7 @@ class DataReceiveThreads(Ui_MainWindow):
 
         # 模擬模式=True, 步階響應模式 mode=1
         simulation = False
-        mode = 1
+        mode = 0
 
         Idx = 0
         test = 0
@@ -318,13 +318,15 @@ class DataReceiveThreads(Ui_MainWindow):
         fuzzy2 = self_fuzzy_system()
         error = 0
         delta = 0
-        fis = ANFIS()
-        down = ANFIS()
-        # compare_anfis = ori_ANFIS()
+        first_half = ANFIS()
+        first_half.load_model('sin_10_model_first.txt')
+        second_half = ANFIS()
+        second_half.load_model('sin_10_model_second.txt')
+
         early_stop = 0
         last_total_error = 100 #max
 
-        ku = 0.01
+        ku = 0.0065
         total_duration = 0.05 
         target_trag = self.y_10
 
@@ -335,6 +337,8 @@ class DataReceiveThreads(Ui_MainWindow):
         cycle_max_error = 0
 
         first_period_detail = np.asarray([])
+        voltage_his = np.asarray([])
+        angle_his = np.asarray([])
 
         test_idx = 0
         #keras
@@ -371,12 +375,28 @@ class DataReceiveThreads(Ui_MainWindow):
             actual_angle = right_hand.get_angle()
             error = desire_angle - actual_angle
             delta = (error -  last_error)
+
             if Idx < len(target_trag)/2 and test > 4/total_duration:
-                new_u = fis.train([error],[delta], [desire_angle],[actual_angle])
+                if abs(error) > 10:
+                    first_half.change_learning_rate(0.2)
+                else:
+                    first_half.change_learning_rate(0)
+                new_u = first_half.train([error],[delta], [desire_angle],[actual_angle])
             elif Idx >= len(target_trag)/2 and test > 4/total_duration:
-                new_u = down.train([error],[delta], [desire_angle],[actual_angle])
+                if abs(error) > 10:
+                    second_half.change_learning_rate(0.2)
+                else:
+                    second_half.change_learning_rate(0)
+                new_u = second_half.train([error],[delta], [desire_angle],[actual_angle])
             else:
-                new_u= fis.predict([error],[delta])
+                new_u= first_half.predict([error],[delta])
+            
+            # if Idx < len(target_trag)/2:
+            #     new_u = first_half.predict([error],[delta])
+            
+            # else:
+            #     new_u= second_half.predict([error],[delta])
+
             # new_u= fis.predict([error],[delta])
             # if Idx < len(target_trag)/2 and test > 4/total_duration:
             #     new_u, mu_error, sigma_error, mu_delta, sigma_delta, y= fis.train([error],[delta], [desire_angle],[actual_angle])
@@ -392,8 +412,8 @@ class DataReceiveThreads(Ui_MainWindow):
             # print(new_u)
             new_u = new_u * ku
             controller_u = controller_u + new_u
-            # if controller_u < 0.3:
-            #     controller_u = 0.3
+            # if controller_u < 0.2:
+            #     controller_u = 0.2
             # print(controller_u)
             last_error = error
             # print(error,delta)
@@ -451,12 +471,15 @@ class DataReceiveThreads(Ui_MainWindow):
                 break
             
             self.ser_1.write(controller_u_output.to_bytes(2, byteorder='big'))
+            voltage_his = np.append(controller_u,voltage_his)
+            angle_his = np.append(actual_angle,angle_his)
 
             if Idx == len(target_trag)-1:
                 total_error = (total_error/200)**0.5
                 print("total_error : ",total_error)
                 print("cycle_max_error : ",cycle_max_error)
-                fis.save_model()
+                first_half.save_model('sin_10_model_first_3kg')
+                second_half.save_model('sin_10_model_second_3kg')
                 # if total_error <= last_total_error:
                 #     last_mu_error, last_sigma_error,last_mu_delta, last_sigma_delta, last_y = mu_error, sigma_error, mu_delta, sigma_delta, y
                 #     last_total_error = total_error
@@ -464,6 +487,8 @@ class DataReceiveThreads(Ui_MainWindow):
                 #     early_stop = 1
                 total_error = 0
                 cycle_max_error = 0
+                np.savetxt('voltage_his_learning_10sec_3kg.txt', voltage_his, delimiter=',')
+                np.savetxt('angle_his_learning_10sec_3kg.txt', angle_his, delimiter=',')
 
             else:
                 total_error = total_error+(error**2)

@@ -76,13 +76,12 @@ class MyMainWindow(QtWidgets. QMainWindow, Ui_MainWindow):
         self.queue_receive_deg = Queue()
         self.queue_desire_deg = Queue()
         self.queue_control_value = Queue()
-        self.queue_first_period= Queue()
 
         self.multipDataRecv = multiprocessing.Process(target=self.dt.data_recv, 
                                                       args=(self.queue_comport, self.queue_voltage, 
                                                              self.queue_gui_message,
                                                             self.queue_receive_deg, self.queue_desire_deg,
-                                                            self.queue_control_value,self.queue_first_period
+                                                            self.queue_control_value
                                                             )) 
         self.raw_total = np.array([])
         self.raw_total_deg = np.array([])
@@ -122,7 +121,7 @@ class MyMainWindow(QtWidgets. QMainWindow, Ui_MainWindow):
         raw = self.queue_voltage.get()
         raw_deg = self.queue_receive_deg.get()
         desire_deg = self.queue_desire_deg.get()
-        first_period = self.queue_first_period.get()
+        # first_period = self.queue_first_period.get()
              
         # clear the queue
         while not self.queue_voltage.empty():
@@ -167,23 +166,23 @@ class MyMainWindow(QtWidgets. QMainWindow, Ui_MainWindow):
         xdata = np.arange(ydata.shape[0])
         self.canvas.lines[0].set_data(xdata, ydata)
 
-        # y_data_1 = self.desire_deg_array     
-        # x_data_1 = np.arange(y_data_1.shape[0])
-        # self.canvas.lines[1].set_data(x_data_1, y_data_1)
+        y_data_1 = self.desire_deg_array     
+        x_data_1 = np.arange(y_data_1.shape[0])
+        self.canvas.lines[1].set_data(x_data_1, y_data_1)
 
         ydat = self.raw_total_deg     
         xdat = np.arange(ydat.shape[0])
         self.canvas.lines[2].set_data(xdat, ydat)
 
-        # self.canvas.lines[3].set_data(x_data_1, y_data_1)
+        self.canvas.lines[3].set_data(x_data_1, y_data_1)
         self.canvas.lines[5].set_data(xdat, ydat)
 
-        # self.canvas.lines[4].set_data(xdat, y_data_1 - ydat)
+        self.canvas.lines[4].set_data(xdat, y_data_1 - ydat)
 
-        first_y = self.first_period
-        first_x = np.arange(first_y.shape[0])
+        # first_y = self.first_period
+        # first_x = np.arange(first_y.shape[0])
 
-        self.canvas.lines[6].set_data(first_x,first_y)
+        # self.canvas.lines[6].set_data(first_x,first_y)
         # self.canvas.lines[7].set_data(first_x,y_data_1 - first_y)
 
         self.canvas.draw()
@@ -289,7 +288,7 @@ class DataReceiveThreads(Ui_MainWindow):
 
         # 模擬模式=True, 步階響應模式 mode=1
         simulation = False
-        mode = 0
+        mode = 1
 
         Idx = 0
         test = 0
@@ -301,7 +300,7 @@ class DataReceiveThreads(Ui_MainWindow):
         first_period_cycle = True
         first_period_idx = 0
         first_period_change = True
-        controller_u = 0
+        controller_u = 0.5
         controller_u_output = 0
 
         smc_lambda = 0.1   # 0.2 越快到滑膜面
@@ -325,7 +324,7 @@ class DataReceiveThreads(Ui_MainWindow):
         early_stop = 0
         last_total_error = 100 #max
 
-        ku = 0.0068
+        ku = 0.01
         total_duration = 0.05 
         target_trag = self.y_10
 
@@ -343,9 +342,9 @@ class DataReceiveThreads(Ui_MainWindow):
             # 记录开始时间
             start_time = time.time()
             # 前 (test/10) 秒不作動
-            if test <4/total_duration:
+            if test < 4/total_duration:
                 Idx = 0
-                desire_angle = self.test[0]
+                desire_angle = target_trag[0]
             else:
                 Idx = Idx + 1
                 if Idx == len(target_trag):
@@ -356,14 +355,16 @@ class DataReceiveThreads(Ui_MainWindow):
             ####################### 目標路徑 #######################
             desire_angle = target_trag[Idx]
             if mode == 1:
-                if desire_angle > 55 :
-                    desire_angle = 50
-                else :
+                if Idx > len(target_trag)/2 :
                     desire_angle = 30
+                else :
+                    desire_angle = 90
+                    if test < 4/total_duration:
+                        desire_angle = target_trag[0]
             
-            if test <4/total_duration and test>4/total_duration -len(self.test):
-                desire_angle = self.test[test_idx]
-                test_idx = test_idx+1
+            # if test <4/total_duration and test>4/total_duration -len(self.test):
+            #     desire_angle = self.test[test_idx]
+            #     test_idx = test_idx+1
             #######################################################
             
             ########new need
@@ -372,11 +373,11 @@ class DataReceiveThreads(Ui_MainWindow):
             delta = (error -  last_error)
             if Idx < len(target_trag)/2 and test > 4/total_duration:
                 new_u = fis.train([error],[delta], [desire_angle],[actual_angle])
-
             elif Idx >= len(target_trag)/2 and test > 4/total_duration:
                 new_u = down.train([error],[delta], [desire_angle],[actual_angle])
             else:
                 new_u= fis.predict([error],[delta])
+            # new_u= fis.predict([error],[delta])
             # if Idx < len(target_trag)/2 and test > 4/total_duration:
             #     new_u, mu_error, sigma_error, mu_delta, sigma_delta, y= fis.train([error],[delta], [desire_angle],[actual_angle])
             # else:
@@ -391,6 +392,8 @@ class DataReceiveThreads(Ui_MainWindow):
             # print(new_u)
             new_u = new_u * ku
             controller_u = controller_u + new_u
+            # if controller_u < 0.3:
+            #     controller_u = 0.3
             # print(controller_u)
             last_error = error
             # print(error,delta)
@@ -398,7 +401,8 @@ class DataReceiveThreads(Ui_MainWindow):
             ##########
 
             # ##儲存第一次結果
-            # if  first_period == True and  test >= 4/total_duration -1:
+            # if  first_period == True and  test >=
+            #  4/total_duration -1:
             #     first_period_detail = np.append(first_period_detail,actual_angle)
             #     if Idx == len(target_trag)-1:
             #         first_period = False
@@ -415,8 +419,8 @@ class DataReceiveThreads(Ui_MainWindow):
             #     actual_angle = desire_angle
             #     total_error = 0
             if test > 4/total_duration:
-                int_actual_angle = int(actual_angle)
-                queue_receive_deg.put(int_actual_angle)
+                # int_actual_angle = int(actual_angle)
+                queue_receive_deg.put(actual_angle)
                 queue_desire_deg.put(desire_angle)
                 queue_voltage.put(controller_u)
                 # if test < 4/total_duration -1:
@@ -452,6 +456,7 @@ class DataReceiveThreads(Ui_MainWindow):
                 total_error = (total_error/200)**0.5
                 print("total_error : ",total_error)
                 print("cycle_max_error : ",cycle_max_error)
+                fis.save_model()
                 # if total_error <= last_total_error:
                 #     last_mu_error, last_sigma_error,last_mu_delta, last_sigma_delta, last_y = mu_error, sigma_error, mu_delta, sigma_delta, y
                 #     last_total_error = total_error

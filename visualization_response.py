@@ -4,12 +4,16 @@ import matplotlib.pyplot as plt
 # 讀取數據
 # 確保將 'filename.txt' 替換為您的文件名
 # 假設每行有兩個以空格分隔的數字
-degree_his = np.loadtxt('degree_response_no_learning.txt')
-voltage_his = np.loadtxt('voltage_response_no_learning.txt')
+degree_his = np.loadtxt('degree_response_learning.txt')
+voltage_his = np.loadtxt('voltage_response_learning.txt')
+degree_his_no = np.loadtxt('degree_response_no_learning.txt')
+voltage_his_no = np.loadtxt('voltage_response_no_learning.txt')
 
 # 數據點的 x 坐標和 y 坐標
 degree_his = degree_his[::-1]
 voltage_his = voltage_his[::-1]
+degree_his_no = degree_his_no[::-1]
+voltage_his_no = voltage_his_no[::-1]
 degree_desire = np.full(200, 90)
 
 print('overshoot:',degree_his.max())
@@ -22,6 +26,8 @@ for i in range(len(in_range_inverse)):
         true_index = len(degree_his) - i -1
         print('setting time:',((true_index)-100)*0.05)
         break
+
+    
     
 # 包含電壓
 # fig, (ax1, ax2) = plt.subplots(2, 1, sharex=True)  # sharex=True 表示兩個圖共享x軸
@@ -46,16 +52,16 @@ for i in range(len(in_range_inverse)):
 # plt.show()
 
 fig, ax2 = plt.subplots( 1, sharex=True)  # sharex=True 表示兩個圖共享x軸
-color1 = 'tab:blue'
 x_data = np.linspace(0, 10, 200)
 
 # 在第一個軸上繪製第一組數據
-ax2.plot(x_data,degree_his[100:], color=color1)  # 'r-' 表示紅色的線條
+ax2.plot(x_data,degree_his[100:], color='tab:red', label='learning')  # 'r-' 表示紅色的線條
+ax2.plot(x_data,degree_his_no[100:], color='tab:blue', label='without learning')  # 'r-' 表示紅色的線條
 # ax2.set_title('degree')  # 第一個圖的標題
 ax2.set_ylabel('Angle (Degree)')  # Y軸標籤
 ax2.set_xlabel('Time (Sec)')  # 兩個圖表共享X軸，只需在最下面的圖表設置X軸標籤
 ax2.plot(x_data,degree_desire , color='k',linewidth=1)
-
+ax2.legend(loc='lower right')
 ax2.set_xlim(0, 10)
 
 # 自動調整子圖參數，以確保子圖不會重疊

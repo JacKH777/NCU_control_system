@@ -11,6 +11,7 @@ right_hand.get_com_port('COM4')
 test = 0
 total_duration = 0.05 
 fis = ANFIS()
+fis.load_model('model.txt')
 ku = 0.01
 voltage_his = np.asarray([])
 degree_his = np.asarray([])
@@ -40,6 +41,8 @@ while test < 300:
     error = desire_angle - actual_angle
     delta = (error -  last_error)
     
+
+    # new_u= fis.train([error],[delta], [desire_angle],[actual_angle])
     new_u= fis.predict([error],[delta])
     new_u = new_u * ku
     controller_u = controller_u + new_u
@@ -70,7 +73,7 @@ while test < 300:
         remaining_time = total_duration - elapsed_time
         time.sleep(remaining_time)
 
-np.savetxt('voltage_response_no_learning.txt', voltage_his, delimiter=',')
-np.savetxt('degree_response_no_learning.txt', degree_his, delimiter=',')
+np.savetxt('voltage_response_learning.txt', voltage_his, delimiter=',')
+np.savetxt('degree_response_learning.txt', degree_his, delimiter=',')
 controller_u_output = 0
 ser_1.write(controller_u_output.to_bytes(2, byteorder='big'))

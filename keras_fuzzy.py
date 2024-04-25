@@ -7,35 +7,38 @@ os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
 
 class ANFIS:
 
-    def __init__(self,learning_rate=0.005):
+    def __init__(self,learning_rate=0.01):
 
-        self.mu_error = tf.Variable(np.asarray([-5, -3, -1, 0, 1, 3, 5]), dtype=tf.float32)
-        self.sigma_error = tf.Variable(np.asarray([1.5, 1, 1, 1, 1, 1, 1.5]), dtype=tf.float32)
-        self.mu_delta = tf.Variable(np.asarray([-5, -3, -1, 0, 1, 3, 5]), dtype=tf.float32)
-        self.sigma_delta = tf.Variable(np.asarray([1.5, 1, 1, 1, 1, 1, 1.5]), dtype=tf.float32)
-        self.y = tf.Variable(np.asarray([-10, -5, -3, 0, 3, 5, 10]), dtype=tf.float32)
-        self.y_sigma = tf.Variable(np.asarray([1.5, 1, 1, 1, 1, 1, 1.5]), dtype=tf.float32)
+        self.mu_error = tf.Variable(np.asarray([-5, -3, -1, 0, 1, 3, 5]), dtype=tf.float64)
+        self.sigma_error = tf.Variable(np.asarray([1.5, 1, 1, 1, 1, 1, 1.5]), dtype=tf.float64)
+        self.mu_delta = tf.Variable(np.asarray([-5, -3, -1, 0, 1, 3, 5]), dtype=tf.float64)
+        self.sigma_delta = tf.Variable(np.asarray([1.5, 1, 1, 1, 1, 1, 1.5]), dtype=tf.float64)
+        self.y = tf.Variable(np.asarray([-10, -5, -3, 0, 3, 5, 10]), dtype=tf.float64)
+        self.y_sigma = tf.Variable(np.asarray([1.5, 1, 1, 1, 1, 1, 1.5]), dtype=tf.float64)
         self.trainable_variables = [self.mu_error, self.sigma_error,self.mu_delta, self.sigma_delta, self.y,self.y_sigma]
 
 
-        initial_learning_rate = 0.016
-        lr_schedule = tf.keras.optimizers.schedules.ExponentialDecay(
-            initial_learning_rate=initial_learning_rate,
-            decay_steps=100,
-            decay_rate=0,
-            staircase=True)
-        # # self.optimizer = tf.optimizers.Adam(learning_rate = lr_schedule) # Optimization step
-        # self.optimizer = tf.optimizers.RMSprop(learning_rate=lr_schedule, rho=0.8)
-        # # self.optimizer = tf.optimizers.Adadelta(learning_rate=1, rho=0.9)
+        # initial_learning_rate = 0.016
+        # lr_schedule = tf.keras.optimizers.schedules.ExponentialDecay(
+        #     initial_learning_rate=initial_learning_rate,
+        #     decay_steps=100,
+        #     decay_rate=0,
+        #     staircase=True)
+        # self.optimizer = tf.optimizers.Adam(learning_rate = learning_rate) # Optimization step
+        # self.optimizer = tf.optimizers.RMSprop(learning_rate=0.01,rho=0,momentum=0.2)
+        # self.optimizer = tf.optimizers.Adadelta(learning_rate=1, rho=0.9)
         # # self.optimizer = tf.optimizers.AdamW(learning_rate=lr_schedule, weight_decay=0.01)
-        self.optimizer = tf.optimizers.Adam(learning_rate = 0) 
+        # self.optimizer = tf.optimizers.Adam(learning_rate = 0) 
+        self.optimizer = tf.keras.optimizers.SGD(learning_rate=0.1,momentum=0.9)
+        # self.optimizer = tf.optimizers.Adagrad(learning_rate=0.01)
+
 
     def train(self, error,delta, targets, actual_angle):
         with tf.GradientTape() as tape:
-            self.error = tf.convert_to_tensor( error, dtype=tf.float32)
-            self.delta = tf.convert_to_tensor( delta, dtype=tf.float32)
-            targets = tf.convert_to_tensor(targets, dtype=tf.float32)
-            actual_angle = tf.convert_to_tensor(actual_angle, dtype=tf.float32)
+            self.error = tf.convert_to_tensor( error, dtype=tf.float64)
+            self.delta = tf.convert_to_tensor( delta, dtype=tf.float64)
+            targets = tf.convert_to_tensor(targets, dtype=tf.float64)
+            actual_angle = tf.convert_to_tensor(actual_angle, dtype=tf.float64)
             # self.error =error
             # self.delta = delta
             # targets = targets
@@ -68,6 +71,8 @@ class ANFIS:
 
             self.mf_error = tf.concat([self.error_first, self.rul_error, self.error_last], axis=0)
             self.mf_delta = tf.concat([self.delta_first, self.rul_delta, self.delta_last], axis=0)
+            # print('error:',self.mf_error )
+            # print('delta:',self.mf_delta )
             # rul_error_expanded = tf.expand_dims(self.mf_error, 1)  # 扩展为 [ 7, 1] 然后复制
             # rul_delta_expanded = tf.expand_dims(self.mf_delta, 0)  # 扩展为 [ 1, 7] 然后复制
 
@@ -90,18 +95,24 @@ class ANFIS:
             rule_6 = tf.minimum(rule_6_sum, 1)
             self.rul = tf.stack([rule_0, rule_1, rule_2, rule_3, rule_4, rule_5, rule_6])
             self.rul = tf.reshape(self.rul, (1, 7))
+            # print(self.rul)
             # Fuzzy base expansion function:
             # num = tf.clip_by_value(tf.reduce_sum(tf.multiply(tf.multiply(self.rul, self.y),self.y_sigma), axis=1), 1e-6, 1e6)
             # den = tf.clip_by_value(tf.reduce_sum(tf.multiply(self.rul,self.y_sigma), axis=1), 1e-6, 1e6)
+            self.rul = tf.where(tf.math.is_nan(self.rul), tf.zeros_like(self.rul), self.rul)
             num = tf.reduce_sum(tf.multiply(tf.multiply(self.rul, self.y),self.y_sigma), axis=1)
             den =tf.reduce_sum(tf.multiply(self.rul,self.y_sigma), axis=1)
             self.out = tf.divide(num, den)
             self.u = self.out
             self.out = actual_angle + (0.001*self.out)
-            mae_loss = tf.keras.losses.MeanAbsoluteError()
+            # print('rul:',self.rul)
+            # print('y:',self.y)
+            # print('y_s:',self.y_sigma)
+            # print('u',self.u)
+            mae_loss = tf.keras.losses.MeanSquaredError()
             loss = mae_loss(targets, self.out)
-        if tf.math.is_nan(self.out):
-            self.out = 0
+        if tf.math.is_nan(self.u):
+            self.u = 0
         gradients = tape.gradient(loss, self.trainable_variables)
         self.optimizer.apply_gradients(zip(gradients, self.trainable_variables))
         return tf.squeeze(self.u)
@@ -111,8 +122,8 @@ class ANFIS:
         np.savetxt('model.txt', all_data, delimiter=',', fmt='%f')
 
     def predict(self, error, delta,):
-        self.error = tf.convert_to_tensor( error, dtype=tf.float32)
-        self.delta = tf.convert_to_tensor( delta, dtype=tf.float32)
+        self.error = tf.convert_to_tensor( error, dtype=tf.float64)
+        self.delta = tf.convert_to_tensor( delta, dtype=tf.float64)
 
         self.error_first = 1 / (1 + tf.exp(self.sigma_error[0]*(self.error[0] - self.mu_error[0])))
         self.delta_first = 1 / (1 + tf.exp(self.sigma_delta[0]*(self.delta[0]  - self.mu_delta[0])))
@@ -162,6 +173,7 @@ class ANFIS:
         self.rul = tf.stack([rule_0, rule_1, rule_2, rule_3, rule_4, rule_5, rule_6])
         self.rul = tf.reshape(self.rul, (1, 7))
         # Fuzzy base expansion function:
+        self.rul = tf.where(tf.math.is_nan(self.rul), tf.zeros_like(self.rul), self.rul)
         num = tf.reduce_sum(tf.multiply(tf.multiply(self.rul, self.y),self.y_sigma), axis=1)
         den = tf.reduce_sum(tf.multiply(self.rul,self.y_sigma), axis=1)
         self.out = tf.divide(num, den)
@@ -169,6 +181,16 @@ class ANFIS:
 
         return tf.squeeze(self.u)
 
+    def load_model(self,path):
+        all_data_loaded = np.loadtxt(path, delimiter=',')
+    
+        # 分列存储到各个变量中，假设我们知道有六列
+        self.mu_error = all_data_loaded[:, 0]
+        self.sigma_error = all_data_loaded[:, 1]
+        self.mu_delta = all_data_loaded[:, 2]
+        self.sigma_delta = all_data_loaded[:, 3]
+        self.y = all_data_loaded[:, 4]
+        self.y_sigma = all_data_loaded[:, 5]
 
 class ori_ANFIS:
 

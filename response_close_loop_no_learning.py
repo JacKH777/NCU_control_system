@@ -1,9 +1,9 @@
 import numpy as np
-from decoder_function import decoder
+from encoder_function import decoder
 import serial
 import time
 
-from keras_fuzzy import ANFIS
+from kerasFuzzy import ANFIS
 
 ser_1 = serial.Serial("COM6", 115200)
 right_hand = decoder()

@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
-from decoder_function import decoder
+from encoder_function import decoder
 import serial
 import time
 

@@ -1,36 +1,32 @@
-import numpy as np
-# from io import StringIO
+# import numpy as np
+# m = 1
+# moment_of_inertia = (1/12*0.33*(0.25**4 - 0.24**4))+ 0.33*0.14**2 + m*0.14**2
+# print("I value : ",moment_of_inertia)
+# g = 9.81
+# d = 0.14
+# # theta = np.arcsin(torque /m/g/d) / np.pi*180
+# # print(theta)
+# # t =  m *g*d*np.sin(0.48/180*np.pi)
+# # print(t)
+# initial_torque = m * g * d * np.sin(50/180*np.pi)
+# print(initial_torque)
+# torque = initial_torque + 0.05
+# theta = np.arcsin(torque /m/g/d) / np.pi*180
+# print(theta)
 
-# file_path = 'model.txt'  # 假设的文件路径
+import serial
+import time
 
-# # file_like = StringIO(file_path)
-# # # 讀取每一行並轉換為numpy數組
-# # array1 = np.loadtxt(file_like, delimiter=',', max_rows=1)
-# # array2 = np.loadtxt(file_like, delimiter=',', max_rows=1)
-# # # 如果需要繼續讀取其他行，可以繼續使用np.loadtxt()
+ser = serial.Serial(
+    port='COM16',        # 替换为实际的串口号，例如 'COM16'
+    baudrate=2400,       # 设置波特率
+    bytesize=serial.EIGHTBITS,  # 数据位
+    parity=serial.PARITY_NONE,  # 校验位
+    stopbits=serial.STOPBITS_ONE,  # 1位停止位
+    timeout=1            # 读取超时设置
+)
+while True:
 
-# # array1, array2
-# # 读取文件
-# with open(file_path, 'r') as file:
-#     lines = file.readlines()
-
-# # 解析四个数组
-# arrays = [line.strip().split() for line in lines]
-
-# # # 将数组元素转换为整数或浮点数
-# # for i, arr in enumerate(arrays):
-# #     arrays[i] = [float(num) if '.' in num else int(num) for num in arr]
-
-# # 返回解析后的数组列表
-# print(arrays)
-all_data_loaded = np.loadtxt('model.txt', delimiter=',')
+    print(ser.read(6))
     
-# 分列存储到各个变量中，假设我们知道有六列
-mu_error_loaded = all_data_loaded[:, 0]
-sigma_error_loaded = all_data_loaded[:, 1]
-mu_delta_loaded = all_data_loaded[:, 2]
-sigma_delta_loaded = all_data_loaded[:, 3]
-y_loaded = all_data_loaded[:, 4]
-y_sigma_loaded = all_data_loaded[:, 5]
 
-print(mu_error_loaded)

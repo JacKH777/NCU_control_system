@@ -27,7 +27,7 @@ from smc_system_detail import control_system,Control,return_simulation_pma_angle
 import skfuzzy as fuzz
 import skfuzzy.control as ctrl
 from fuzzy_neural_principle import fuzzy_system,RealTimeGaussianPlot,self_fuzzy_system
-from keras_fuzzy import ANFIS,ori_ANFIS
+from kerasFuzzy import ANFIS,ori_ANFIS
 
 
 # https://www.pythonguis.com/tutorials/plotting-matplotlib/
@@ -41,7 +41,7 @@ from scipy import signal
 
 import serial.tools.list_ports
 
-from decoder_function import decoder
+from encoder_function import decoder
 
 TF_ENABLE_ONEDNN_OPTS=0
 

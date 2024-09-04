@@ -6,6 +6,7 @@ from PyQt5.QtGui import *
 # from trash import Ui_MainWindow
 import os
 os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
+os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 from control_system_gui import Ui_MainWindow
 
 import sys
@@ -27,7 +28,7 @@ from smc_system_detail import control_system,Control,return_simulation_pma_angle
 import skfuzzy as fuzz
 import skfuzzy.control as ctrl
 from fuzzy_neural_principle import fuzzy_system,RealTimeGaussianPlot,self_fuzzy_system
-from keras_fuzzy import ANFIS,ori_ANFIS
+from kerasFuzzy import ANFIS,ori_ANFIS
 
 
 # https://www.pythonguis.com/tutorials/plotting-matplotlib/
@@ -41,7 +42,7 @@ from scipy import signal
 
 import serial.tools.list_ports
 
-from decoder_function import decoder
+from encoder_function import encoder
 
 TF_ENABLE_ONEDNN_OPTS=0
 
@@ -280,8 +281,8 @@ class DataReceiveThreads(Ui_MainWindow):
         queue_gui_message.put(f"Successfull Open")
 
         # self.ser_2 = serial.Serial('COM4', 115200)
-        right_hand = decoder()
-        right_hand.get_com_port('COM4')
+        right_hand = encoder()
+        right_hand.get_com_port('COM7')
         print(f"Successfull Open COM4")
 
         C = Control()
@@ -319,9 +320,9 @@ class DataReceiveThreads(Ui_MainWindow):
         error = 0
         delta = 0
         first_half = ANFIS()
-        first_half.load_model('sin_10_model_first.txt')
+        # first_half.load_model('sin_10_model_first.txt')
         second_half = ANFIS()
-        second_half.load_model('sin_10_model_second.txt')
+        # second_half.load_model('sin_10_model_second.txt')
 
         early_stop = 0
         last_total_error = 100 #max
@@ -376,21 +377,21 @@ class DataReceiveThreads(Ui_MainWindow):
             error = desire_angle - actual_angle
             delta = (error -  last_error)
 
-            if Idx < len(target_trag)/2 and test > 4/total_duration:
-                if abs(error) > 10:
-                    first_half.change_learning_rate(0.2)
-                else:
-                    first_half.change_learning_rate(0)
-                new_u = first_half.train([error],[delta], [desire_angle],[actual_angle])
-            elif Idx >= len(target_trag)/2 and test > 4/total_duration:
-                if abs(error) > 10:
-                    second_half.change_learning_rate(0.2)
-                else:
-                    second_half.change_learning_rate(0)
-                new_u = second_half.train([error],[delta], [desire_angle],[actual_angle])
-            else:
-                new_u= first_half.predict([error],[delta])
-            
+            # if Idx < len(target_trag)/2 and test > 4/total_duration:
+            #     if abs(error) > 10:
+            #         first_half.change_learning_rate(0.2)
+            #     else:
+            #         first_half.change_learning_rate(0)
+            #     new_u = first_half.train([error],[delta], [desire_angle],[actual_angle])
+            # elif Idx >= len(target_trag)/2 and test > 4/total_duration:
+            #     if abs(error) > 10:
+            #         second_half.change_learning_rate(0.2)
+            #     else:
+            #         second_half.change_learning_rate(0)
+            #     new_u = second_half.train([error],[delta], [desire_angle],[actual_angle])
+            # else:
+            #     new_u= first_half.predict([error],[delta])
+            new_u= first_half.predict([error],[delta])
             # if Idx < len(target_trag)/2:
             #     new_u = first_half.predict([error],[delta])
             

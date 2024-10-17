@@ -2,9 +2,9 @@ import serial
 import time
 import numpy as np
 from encoder_function import encoder
-ser_1 = serial.Serial("COM12", 115200)
+ser_1 = serial.Serial("COM3", 115200)
 
-# 角度計
+#角度計
 angle_encoder = encoder()
 angle_encoder.get_com_port('COM7')
 
@@ -26,9 +26,9 @@ print(angle_encoder.get_angle())
 #         i=0
 #     controller_u_output = triangle_angle[i]
 #     ser_1.write(controller_u_output.to_bytes(2, byteorder='big'))
-
+#     print(angle_encoder.get_angle(),controller_u_output)
 #     i = i+1
-# #     time.sleep(0.02)
+#     time.sleep(0.04)
 # controller_u_output = int(4.5/10*65535)
 # ser_1.write(controller_u_output.to_bytes(2, byteorder='big'))
 # time.sleep(2)

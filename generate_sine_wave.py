@@ -1,33 +1,30 @@
 import numpy as np
 
-# 設定sin波形的參數
-amplitude = 30  # 振幅
-offset = 60     # 位移，使得波形的最小值為0
-frequency = 1   # 頻率（週期數）
-num_points = 250    # 點的數量
+def generate_sine_wave(amplitude=0.82, num_points=250):
+    """
+    生成调整后的正弦波形。
+    
+    参数:
+    amplitude (float): 正弦波的振幅，决定波峰和波谷的高度。
+    num_points (int): 生成的数据点数。
+    
+    返回:
+    numpy.ndarray: 调整后的正弦波形数组。
+    """
+    offset = amplitude + 0.06  # 根据振幅自动计算偏移，确保最低点始终为0.05
+    frequency = 1  # 频率设置为1周期
 
-# 產生0到2π之間的等間隔數值（num_points個點）
-x = np.linspace(0, 2 * np.pi, num_points)
+    # 生成0到2π之间的等间隔数值（num_points个点）
+    x = np.linspace(0, 2 * np.pi, num_points)
 
-# 使用NumPy函式計算sin波形，並加上位移以確保波形的最小值為0
-sin_wave = amplitude * np.sin(frequency * x) + offset
+    # 调整正弦波的相位，使得波形从最小值开始（通过减去π/2）
+    sin_wave = amplitude * np.sin(frequency * x - np.pi / 2) + offset
 
-# 四捨五入，確保波形的最大值為40000
-sin_wave = np.round(sin_wave)
+    # 四舍五入，保留小数点后4位
+    sin_wave_rounded = np.round(sin_wave, 4)
 
-# 限制波形的最大值為40000
-sin_wave = np.clip(sin_wave, 0, 40000)
+    return sin_wave_rounded
 
-# 將sin波形陣列元素轉換為正整數
-sin_wave_int = sin_wave.astype(int)
-
-# 找出最小值的索引
-min_index = np.argmin(sin_wave_int)
-
-# 從最小值開始重新排列陣列
-sin_wave_rolled = np.roll(sin_wave_int, -min_index)
-
-# 將sin波形陣列元素以逗號區隔，並以字串形式表示
-sin_wave_str = ','.join(map(str, sin_wave_rolled))
-
-print(sin_wave_str)  # 顯示以逗號區隔的正整數sin波形字串
+# # 调用函数并打印结果
+# result = generate_sine_wave()
+# print(result)

@@ -2,7 +2,7 @@ import serial
 import time
 import numpy as np
 from encoder_function import encoder
-ser_1 = serial.Serial("COM3", 115200)
+ser_1 = serial.Serial("COM6", 115200)
 
 #角度計
 angle_encoder = encoder()

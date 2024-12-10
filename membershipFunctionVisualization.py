@@ -18,14 +18,14 @@ import matplotlib.pyplot as plt
 # sigma_delta_torque = tf.Variable(np.asarray([130, 0.05, 0.05, 0.05, 0.05, 0.05, 130]), dtype=tf.float64)
 # torque_range = np.arange(30, 90, 0.1)
 
-# mf_torque = tf.Variable(np.asarray([-8, -7, -3, 0, 3, 7, 8]), dtype=tf.float64)
-# sigma_torque = tf.Variable(np.asarray([2, 1.5, 1.5, 1.5, 1.5, 1.5, 2]), dtype=tf.float64)
-# mf_delta_torque = tf.Variable(np.asarray([-9.5, -7, -3.5, 0, 3.5, 7, 9.5]), dtype=tf.float64)
-# sigma_delta_torque = tf.Variable(np.asarray([2, 1.5, 1.5, 1.5, 1.5, 1.5, 2]), dtype=tf.float64)
-# torque_range = np.arange(-12, 12, 0.1)
+mf_torque = tf.Variable(np.asarray([-8, -7, -3, 0, 3, 7, 8]), dtype=tf.float64)
+sigma_torque = tf.Variable(np.asarray([2, 1.5, 1.5, 1.5, 1.5, 1.5, 2]), dtype=tf.float64)
+mf_delta_torque = tf.Variable(np.asarray([-9.5, -7, -3.5, 0, 3.5, 7, 9.5]), dtype=tf.float64)
+sigma_delta_torque = tf.Variable(np.asarray([2, 1.5, 1.5, 1.5, 1.5, 1.5, 2]), dtype=tf.float64)
+torque_range = np.arange(-12, 12, 0.1)
 
-mf_delta_torque = tf.Variable(np.asarray([-8.5, -5, 0, 5, 8.5]), dtype=tf.float64)
-sigma_delta_torque = tf.Variable(np.asarray([2, 2.5, 2.5, 2.5, 2]), dtype=tf.float64)
+# mf_delta_torque = tf.Variable(np.asarray([-8.5, -5, 0, 5, 8.5]), dtype=tf.float64)
+# sigma_delta_torque = tf.Variable(np.asarray([2, 2.5, 2.5, 2.5, 2]), dtype=tf.float64)
 
 # 定义 self.torque 的范围，比如从 0.5 到 2.0，步长为 0.1
 # torque_range = np.arange(0, 0.9, 0.01)

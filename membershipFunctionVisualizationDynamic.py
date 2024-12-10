@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation, PillowWriter
 
-file_path = './exp/2024_10_08_2006/1/down_model.npy' #1kg
+file_path = './exp/2024_10_21_1919/1/up_model.npy' #1kg
 # file_path = './exp/2024_10_10_1535/1/up_model.npy' #2kg
 # file_path = './exp/2024_10_10_1723/1/up_model.npy' #1kg
 loaded_data = np.load(file_path)

@@ -11,7 +11,7 @@ import time
 
 class ANFIS:
 
-    def __init__(self,learning_rate=0.01):
+    def __init__(self):
 
         self.mu_error = tf.Variable(np.asarray([-9.5, -7, -3.5, 0, 3.5, 7, 9.5]), dtype=tf.float64)
         self.sigma_error = tf.Variable(np.asarray([2, 1.5, 1.5, 1.5, 1.5, 1.5, 2]), dtype=tf.float64)
@@ -22,7 +22,7 @@ class ANFIS:
         self.trainable_variables = [self.mu_error, self.sigma_error,self.mu_delta, self.sigma_delta, self.y]
 
 
-        initial_learning_rate = 0.4
+        initial_learning_rate = 0.8
         lr_schedule = tf.keras.optimizers.schedules.ExponentialDecay(
             initial_learning_rate=initial_learning_rate,
             decay_steps=125,
@@ -32,8 +32,9 @@ class ANFIS:
         # self.optimizer = tf.optimizers.RMSprop(learning_rate=0.01)
         # self.optimizer = tf.optimizers.Adadelta(learning_rate=1, rho=0.9)
         # # self.optimizer = tf.optimizers.AdamW(learning_rate=lr_schedule, weight_decay=0.01)
-        # self.optimizer = tf.optimizers.Adam(learning_rate = 0) 
-        self.optimizer = tf.keras.optimizers.SGD(learning_rate=0.6)
+        self.optimizer = tf.optimizers.Adam(learning_rate = 0.0001)
+        # self.optimizer = tf.keras.optimizers.SGD(learning_rate=0.7)
+        # self.optimizer = tf.keras.optimizers.SGD(learning_rate=lr_schedule)
         # self.optimizer = tf.optimizers.Adagrad(learning_rate=0.01)
 
 
@@ -115,17 +116,25 @@ class ANFIS:
             # print('u',self.u)
             mse_loss = tf.keras.losses.MeanSquaredError()
             loss = mse_loss(targets, self.out)
-        if tf.math.is_nan(self.u):
-            self.u = 0
-        gradients = tape.gradient(loss, self.trainable_variables)
-        self.optimizer.apply_gradients(zip(gradients, self.trainable_variables))
+            # loss = tf.sqrt(mse_loss(targets, self.out))
+            if tf.math.is_nan(self.u):
+                self.u = 0
+            gradients = tape.gradient(loss, self.trainable_variables)
+            gradients = [tf.clip_by_value(grad, -0.01, 0.01) for grad in gradients]
+            self.optimizer.apply_gradients(zip(gradients, self.trainable_variables))
+        return loss
         # return tf.squeeze(self.u)
 
     def change_learning_rate(self,value):
         # print('before:',self.optimizer.learning_rate.numpy())
         self.optimizer.learning_rate = value
+        # print(self.optimizer.learning_rate.numpy())
         # print('after:',self.optimizer.learning_rate.numpy())
 
+    def return_learning_rate(self):
+        # print('before:',self.optimizer.learning_rate.numpy())
+        return self.optimizer.learning_rate
+    
     def return_model(self):
         # name = name + '.npy'
         # 将所有数据组合成一个数组
@@ -199,19 +208,22 @@ class ANFIS:
 
         return tf.squeeze(self.u)
 
-    def load_model(self, path):
+    def load_model(self, path,period = 10,cycle=10):
         # 加载数据
         all_data_loaded = np.load(path)
         # print(all_data_loaded[-1])
         # 从后面取出最后 42 个数据
-        all_data_loaded = all_data_loaded[-42:]
+        all_data_loaded = all_data_loaded[int(125*period/10*cycle)*42:int(125*period/10*cycle)*42+42]
+        # all_data_loaded = all_data_loaded[0:42]
         
         # 检查形状是否正确
         if all_data_loaded.shape[0] != 42:
             raise ValueError("Expected 42 data points, but got {}".format(all_data_loaded.shape[0]))
         
         # 重塑为 6 列，7 行
+        # print(all_data_loaded)
         all_data_loaded = all_data_loaded.reshape(7, 6)
+        # print(all_data_loaded)
         
         # 分别赋值给不同的变量
         self.mu_error.assign(all_data_loaded[:, 0])        # 取第 1 列
@@ -1828,7 +1840,7 @@ class Torque_ANFIS_multi_pos:
             decay_rate=0.9,    # 每次减少 4%
             staircase=True      # True 表示学习率阶梯式降低，False 表示平滑降低
         )
-        self.optimizer = tf.keras.optimizers.SGD(learning_rate=lr_schedule)
+        self.optimizer = tf.keras.optimizers.SGD(learning_rate=0.4)
         # self.optimizer = tf.keras.optimizers.SGD(learning_rate=lr_schedule)
         # self.optimizer = tf.keras.optimizers.Adam(learning_rate=lr_schedule)
         # self.optimizer = tf.keras.optimizers.Adam(

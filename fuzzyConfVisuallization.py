@@ -330,11 +330,12 @@ def moving_average_with_padding(data, window_size):
     # 移除前后填充的部分，保证输出与输入长度相同
     return convolved_data
 
+angle = moving_average_with_padding(angle, 5)
 error = target_period_1 - angle 
-error = moving_average_with_padding(error, 25)
+error = moving_average_with_padding(error, 5)
 delta_error = np.diff(error)
 delta_error = np.insert(delta_error, 0, 0)  # 在差分误差前面插入一个0
-delta_error = moving_average_with_padding(delta_error, 25) *25
+delta_error = moving_average_with_padding(delta_error, 5) *25
 # force = moving_average_with_padding(force, 25)
 def get_torque(angle,force):
         lenth = np.sqrt(0.20**2+0.255**2-2*0.20*0.255*np.cos(np.radians(180 - angle)))
@@ -377,7 +378,7 @@ plt.plot(time, delta_error)
 plt.ylabel('Delta Error (Deg/s)')
 plt.grid(True)
 
-voltage = moving_average_with_padding(voltage, 25)
+voltage = moving_average_with_padding(voltage, 5)
 
 # 在第一个子图中绘制 voltage 数组
 plt.subplot(6, 1, 4)  # (行数, 列数, 子图编号)
@@ -437,3 +438,4 @@ plt.show()
 # # save_path_v = os.path.join(save_dir_v, 'sine_1kg_4.npy')
 # # np.save(save_path, penultimate_wave)
 # # np.save(save_path_v, penultimate_wave_v)
+print(len(angle)/25)
